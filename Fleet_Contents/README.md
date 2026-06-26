@@ -5,6 +5,10 @@ sensor dashboards, threshold-based alarms pushed over SignalR, trip tracking, an
 charting. Built as a full-stack standalone demo: real ASP.NET Core backend, real Postgres
 database, real Vue 3 + Quasar frontend.
 
+**🔗 [Live Demo](https://fleet-frontend-3b1t.onrender.com/monitoring/tt19-fleet/dashboard)** — no
+login required, opens straight into the dashboard. First load may take ~30-60s if the backend has
+been idle (free-tier hosting spins down after inactivity).
+
 ![Fleet Dashboard](docs/screenshot-dashboard.png)
 
 ## What this is
@@ -73,8 +77,9 @@ Open the printed local URL and go to `/monitoring/tt19-fleet/dashboard`.
 
 ## Status
 
-Fully working locally against a real cloud Postgres database — confirmed end-to-end (auth →
-database → API → live UI, including real-time alarm push). Not yet deployed to a public host.
+Deployed and live (see the demo link above) — backend + Neon Postgres + frontend all running on
+Render's free tier. Confirmed end-to-end: auth → database → API → live UI, including real-time
+alarm push over SignalR.
 
 ## License
 
