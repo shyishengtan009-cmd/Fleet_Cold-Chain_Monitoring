@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
-using HIAS_NET_CORE.Fleet;
+using FleetCore.Fleet;
 using MimeKit;
 using System.Collections.Concurrent;
 
-namespace HIAS_NET_CORE.Fleet.Notifications;
+namespace FleetCore.Fleet.Notifications;
 
 /// <summary>
 /// Sends alarm notification emails via SMTP using the MailKit library.

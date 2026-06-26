@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Context;
+using FleetCore.Repositories;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Npgsql;
 
-namespace HIAS_NET_CORE.Repositories;
+namespace FleetCore.Repositories;
 
 /// <summary>
 /// Manages the iot.trips table — GPS route records for cold-truck deliveries.

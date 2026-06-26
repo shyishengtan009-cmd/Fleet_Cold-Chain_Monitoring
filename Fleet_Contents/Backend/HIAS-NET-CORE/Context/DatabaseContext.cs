@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Npgsql;
 using System.Data;
 
-namespace HIAS_NET_CORE.Context;
+namespace FleetCore.Context;
 
 // Simplified for this demo to take a single connection string (what Neon/Supabase/Railway
 // all hand you) instead of the original's separate Server/Database/UserId/Password fields,

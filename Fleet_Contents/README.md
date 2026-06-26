@@ -5,7 +5,7 @@ sensor dashboards, threshold-based alarms pushed over SignalR, trip tracking, an
 charting. Built as a full-stack standalone demo: real ASP.NET Core backend, real Postgres
 database, real Vue 3 + Quasar frontend.
 
-**🔗 [Live Demo](https://fleet-frontend-3b1t.onrender.com/monitoring/tt19-fleet/dashboard)** — no
+**🔗 [Live Demo](https://fleet-frontend-3b1t.onrender.com/monitoring/fleet/dashboard)** — no
 login required, opens straight into the dashboard. First load may take ~30-60s if the backend has
 been idle (free-tier hosting spins down after inactivity).
 
@@ -29,6 +29,40 @@ top header) mirrors the structure of the original product this was extracted fro
 **Backend:** ASP.NET Core 8, Npgsql, Dapper, SignalR, QuestPDF, JWT auth
 **Frontend:** Vue 3, Quasar, Vite, Chart.js, Leaflet, Pinia
 **Database:** PostgreSQL (developed against [Neon](https://neon.tech))
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Browser
+        FE["Vue 3 + Quasar SPA"]
+    end
+
+    subgraph "Render: Static Site"
+        FE
+    end
+
+    subgraph "Render: Web Service"
+        API["ASP.NET Core API"]
+        SIM["FleetSimService\n(background loop, every 30s)"]
+        ALARM["FleetAlarmChecker /\nFleetPollCircuitBreaker"]
+        SIM --> ALARM
+    end
+
+    DB[("Neon Postgres\n(partitioned archive tables)")]
+
+    FE -- "REST (JWT bearer)" --> API
+    FE -- "SignalR WebSocket\n(JWT via querystring)" --> API
+    API -- "Dapper / Npgsql" --> DB
+    SIM -- "writes synthetic readings" --> DB
+    ALARM -- "push on breach" --> FE
+```
+
+`FleetSimService` runs inside the same process as the API — it self-seeds 5 simulated
+devices and generates a new reading for each one every 30 seconds, which is what keeps
+the dashboard "live" with no real hardware required. `FleetAlarmChecker` evaluates each
+new reading against per-device thresholds and pushes breaches to the frontend over the
+same SignalR hub the dashboard is already connected to.
 
 ## Architecture highlights
 
@@ -73,7 +107,7 @@ cd Frontend
 npm install
 npm run dev
 ```
-Open the printed local URL and go to `/monitoring/tt19-fleet/dashboard`.
+Open the printed local URL and go to `/monitoring/fleet/dashboard`.
 
 ## Status
 

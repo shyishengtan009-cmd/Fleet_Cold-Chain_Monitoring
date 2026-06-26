@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Context; // DatabaseContext
+using FleetCore.Context; // DatabaseContext
 using Npgsql;
 
-namespace HIAS_NET_CORE.Repositories;
+namespace FleetCore.Repositories;
 
 /// <summary>
 /// Core database utilities shared by ALL Fleet database classes.

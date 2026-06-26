@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace HIAS_NET_CORE.Models.Fleet;
+namespace FleetCore.Models.Fleet;
 
 /// <summary>
 /// Data models used by the Fleet Alarm Log API endpoints.

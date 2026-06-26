@@ -6,17 +6,17 @@
 //   FleetSim:OrgId           <your org id>
 
 using Dapper;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Fleet.Alarm;
-using HIAS_NET_CORE.Fleet.Notifications;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Context;
+using FleetCore.Fleet;
+using FleetCore.Fleet.Alarm;
+using FleetCore.Fleet.Notifications;
+using FleetCore.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace HIAS_NET_CORE.Services;
+namespace FleetCore.Services;
 
 public class FleetSimService : BackgroundService
 {

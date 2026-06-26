@@ -1,48 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Fleet;
+using FleetCore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 
-namespace HIAS_NET_CORE.Controllers;
+namespace FleetCore.Controllers;
 
 /// <summary>
-/// Provides real-time sensor data and alarm evaluation for a single device.
-///
-/// ── What this controller does ─────────────────────────────────────────────────
-///   GET /api/fleet/realtime/latest  — the single most recent reading for a device
-///   GET /api/fleet/realtime/alarms  — alarm/warn events in a time window,
-///                                     evaluated on-the-fly against device thresholds
-///
-/// ── Difference between /latest and fleet/status ──────────────────────────────
-///   /fleet/status (FleetStatusController) — all devices, one row each, fleet overview
-///   /realtime/latest                       — one device, full reading detail
-///
-/// ── How alarm evaluation works ───────────────────────────────────────────────
-///   The /alarms endpoint is a retrospective report generator.
-///   It loads the device's alarm thresholds from iot.device_settings (alarm_json),
-///   then evaluates EVERY reading in the requested time window against those
-///   thresholds. It does NOT read iot.tt19_alarm_log — those entries are only
-///   written when the debounce counter fires during live ingest.
-///
-///   This means /alarms can be used for historical "what would have triggered"
-///   analysis without the debounce or cooldown effects of the live alarm system.
-///
-///   Levels returned:
-///     ALARM — reading has actually exceeded the threshold
-///     WARN  — reading is within 90% of the threshold (approaching limit)
-///
-/// ── Organisation scoping ─────────────────────────────────────────────────────
-///   Every endpoint checks DeviceBelongsToOrg() using the JWT "OrganizationId"
-///   claim before returning data. Returns 403 if the device belongs to another org.
-///
-/// ── Why this uses FleetDbSettingsRepository not FleetAlarmChecker ──────────────────────
-///   FleetAlarmChecker is designed for live ingest with debounce and cooldown.
-///   This controller is a read-only reporting tool, so it directly reads the
-///   thresholds and applies them inline without any state side-effects.
+/// Real-time sensor data and retrospective alarm evaluation for a single device.
+/// /alarms evaluates every reading in a window against current thresholds inline
+/// (unlike iot.tt19_alarm_log, which only gets entries when the live debounce
+/// counter fires) — so it works for "what would have triggered" analysis without
+/// FleetAlarmChecker's debounce/cooldown state.
 /// </summary>
 [Authorize]
 [ApiController]
@@ -60,13 +32,6 @@ public class FleetRealtimeController : ControllerBase
         _dbSettings = dbSettings;
     }
 
-    // ─── Helper: extract OrganizationId from JWT claim ────────────────────────
-
-    /// <summary>
-    /// Extracts the "OrganizationId" integer claim from the current user's JWT.
-    /// Returns false if the claim is missing or cannot be parsed as int.
-    /// Always call this first in every action method.
-    /// </summary>
     private bool TryGetOrgId(out int orgId)
     {
         orgId = 0;
@@ -74,37 +39,7 @@ public class FleetRealtimeController : ControllerBase
         return claim != null && int.TryParse(claim, out orgId);
     }
 
-    // ─── GET /api/fleet/realtime/latest ──────────────────────────────────────
-
-    /// <summary>
-    /// GET /api/fleet/realtime/latest?hardware_id=HWID_AABBCCDD
-    ///
-    /// Returns the single most recent sensor reading for the requested device.
-    /// The device must belong to the caller's organisation.
-    ///
-    /// Response (device found):
-    /// {
-    ///   "code": 0,
-    ///   "message": "Success",
-    ///   "details": {
-    ///     "found": true,
-    ///     "row": {
-    ///       "hardware_id": "HWID_AABBCCDD",
-    ///       "ts": "2026-03-27T09:58:00Z",
-    ///       "temperature_c": 4.2,
-    ///       "humidity_pct": 65.1,
-    ///       "light_lux": 0.0,
-    ///       "battery_pct": 88,
-    ///       "vibration_g": 0.1
-    ///     }
-    ///   }
-    /// }
-    ///
-    /// Response (device has no readings yet):
-    /// { "code": 0, "message": "Success", "details": { "found": false, "row": null } }
-    ///
-    /// Used by the Real-Time Monitoring page to show the current sensor values.
-    /// </summary>
+    /// <summary>Most recent reading for a device. Backs the Real-Time Monitoring page.</summary>
     [HttpGet("latest")]
     public async Task<IActionResult> GetLatest([FromQuery(Name = "hardware_id")] string hardwareId)
     {
@@ -122,28 +57,9 @@ public class FleetRealtimeController : ControllerBase
         });
     }
 
-    // ─── GET /api/fleet/realtime/alarms ──────────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/realtime/alarms?hardware_id=...&amp;start_utc=...&amp;end_utc=...&amp;limit=10000
-    ///
-    /// Retrospectively evaluates sensor readings in a time window against the
-    /// device's current alarm thresholds. Returns each reading that exceeded
-    /// or approached a threshold.
-    ///
-    /// Query parameters:
-    ///   hardware_id — required; the device to query
-    ///   start_utc   — optional; ISO-8601 UTC start of window
-    ///   end_utc     — optional; ISO-8601 UTC end of window
-    ///   limit       — max readings to evaluate, clamped to 1–50000 (default 10000)
-    ///
-    /// Note: This endpoint evaluates thresholds inline.
-    ///   - ALARM = reading exceeded the threshold value
-    ///   - WARN  = reading is within 90% of the threshold (approaching the limit)
-    ///
-    /// Result is sorted newest-first.
-    ///
-    /// Used by the Cold Truck Alert Report page and the Fleet Dashboard alarm tab.
+    /// Readings in a window that exceeded (ALARM) or approached (WARN) current
+    /// thresholds, newest-first. Backs the Alert Report and Dashboard alarm tab.
     /// </summary>
     [HttpGet("alarms")]
     public async Task<IActionResult> GetAlarms(
@@ -213,7 +129,6 @@ public class FleetRealtimeController : ControllerBase
                     l = ll;
             }
 
-            // Local helper: adds one alarm event row to the result list
             void Add(string type, string message, string level, double? value) =>
                 alarms.Add(new Dictionary<string, object?>
                 {
@@ -224,7 +139,7 @@ public class FleetRealtimeController : ControllerBase
                     ["value"]   = value
                 });
 
-            // ── Temperature alarm checks ──────────────────────────────────────
+            // Temperature checks:
             // ALARM: reading exceeded max/min
             // WARN:  reading is within 10% of the limit (approaching the threshold).
             //        Using abs(threshold)*0.1 instead of threshold*0.1 so that warn
@@ -238,9 +153,8 @@ public class FleetRealtimeController : ControllerBase
                 else if (tempMin.HasValue && t.Value <= tempMin.Value + Math.Abs(tempMin.Value) * 0.1)  Add("TEMP_WARN_LOW",  $"Temperature {t.Value:F1}°C approaching min {tempMin.Value:F1}°C", "WARN",  t);
             }
 
-            // ── Humidity alarm checks ─────────────────────────────────────────
-            // Warn band uses abs(threshold)*0.1 — same pattern as temperature so that
-            // a humMin of 0% does not collapse the warn band to zero.
+            // Humidity checks — same abs(threshold)*0.1 warn-band pattern as temperature,
+            // so a humMin of 0% doesn't collapse the warn band to zero.
             if (h.HasValue)
             {
                 if      (humMax.HasValue && h.Value >= humMax.Value)                                   Add("HUM_HIGH",      $"Humidity {h.Value:F1}% >= max {humMax.Value:F1}%",          "ALARM", h);
@@ -250,7 +164,7 @@ public class FleetRealtimeController : ControllerBase
                 else if (humMin.HasValue && h.Value <= humMin.Value + Math.Abs(humMin.Value) * 0.1)    Add("HUM_WARN_LOW",  $"Humidity {h.Value:F1}% approaching min {humMin.Value:F1}%",  "WARN",  h);
             }
 
-            // ── Light alarm checks ────────────────────────────────────────────
+            // Light checks:
             if (l.HasValue)
             {
                 if      (lightMax.HasValue && l.Value >= lightMax.Value)                                    Add("LIGHT_HIGH",      $"Light {l.Value:F0} lux >= max {lightMax.Value:F0} lux",          "ALARM", l);
@@ -279,31 +193,9 @@ public class FleetRealtimeController : ControllerBase
         });
     }
 
-    // ─── GET /api/fleet/realtime/battery-forecast ─────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/realtime/battery-forecast?hardware_id=...&amp;window_hours=48&amp;threshold_pct=20
-    ///
-    /// Runs linear regression over recent battery_pct readings to estimate
-    /// how many hours remain before the battery drops below threshold_pct.
-    ///
-    /// Query parameters:
-    ///   hardware_id    — required
-    ///   window_hours   — lookback window, 1–720 h (default 48)
-    ///   threshold_pct  — low-battery threshold, 1–50 % (default 20)
-    ///
-    /// Response:
-    /// {
-    ///   "forecast": {
-    ///     "currentPct": 72.4,
-    ///     "slopePerHour": -0.312,    // negative = discharging
-    ///     "hoursUntilThreshold": 168.2,
-    ///     "thresholdPct": 20.0,
-    ///     "dataPoints": 144,
-    ///     "status": "Discharging"   // Charging | Stable | Discharging | Critical
-    ///   }
-    /// }
-    /// forecast is null when fewer than 3 usable readings exist in the window.
+    /// Linear regression over recent battery_pct readings, estimating hours until
+    /// threshold_pct is reached. Null forecast when fewer than 3 usable readings exist.
     /// </summary>
     [HttpGet("battery-forecast")]
     public async Task<IActionResult> GetBatteryForecast(

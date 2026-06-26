@@ -1,12 +1,12 @@
 using System;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Fleet;
+using FleetCore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-namespace HIAS_NET_CORE.Controllers;
+namespace FleetCore.Controllers;
 
 /// <summary>
 /// CRUD API for the fleet-wide named location library.

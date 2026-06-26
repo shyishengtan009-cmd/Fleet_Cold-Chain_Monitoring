@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Fleet.Notifications;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Fleet;
+using FleetCore.Fleet.Notifications;
+using FleetCore.Repositories;
 using Newtonsoft.Json.Linq;
 
-namespace HIAS_NET_CORE.Fleet.Scheduling;
+namespace FleetCore.Fleet.Scheduling;
 
 /// <summary>
 /// Automatically starts and stops trips based on a device's configured daily schedule.

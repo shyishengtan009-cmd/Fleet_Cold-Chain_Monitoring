@@ -1,47 +1,17 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Fleet;
+using FleetCore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HIAS_NET_CORE.Controllers;
+namespace FleetCore.Controllers;
 
 /// <summary>
-/// Provides a real-time fleet-wide overview — one row per device showing
-/// the latest sensor reading, truck assignment, and freshness status.
-///
-/// ── What this controller does ─────────────────────────────────────────────────
-///   GET /api/fleet/status   — returns latest reading per device with
-///                             OK / WARN / OFFLINE classification based on
-///                             how recently the device last reported.
-///
-/// ── When to use this vs other controllers ────────────────────────────────────
-///   FleetStatusController   ← this file — fleet-wide, one row per device
-///   FleetRealtimeController  — single device, latest reading or alarm history
-///   FleetHistoryController   — single device, full time-range data
-///   FleetAlarmLogController  — single device, alarm event log
-///
-/// ── Status classification ─────────────────────────────────────────────────────
-///   OK      — last reading < warn_seconds ago      (device is live)
-///   WARN    — last reading >= warn_seconds ago     (device may be slow)
-///   OFFLINE — last reading >= offline_seconds ago  (device not reporting)
-///
-///   Default thresholds:
-///     warn_seconds    = 900   (15 minutes)
-///     offline_seconds = 1800  (30 minutes)
-///   Both can be overridden per request via query parameters.
-///
-/// ── Data source ───────────────────────────────────────────────────────────────
-///   FleetDbStatusRepository.GetLatestPerDevice() — uses PostgreSQL DISTINCT ON to return
-///   exactly one row per hardware_id, joined with truck assignment data.
-///   See FleetDbStatusRepository.cs for the full SQL and column explanation.
-///
-/// ── Organisation scoping ─────────────────────────────────────────────────────
-///   Results are filtered to the caller's org via the JWT "OrganizationId" claim.
-///   If the claim is missing or unparseable, null is passed (returns all devices —
-///   intended for admin tools only; normal JWT middleware prevents anonymous calls).
+/// Fleet-wide overview — one row per device with its latest reading and an
+/// OK/WARN/OFFLINE freshness badge based on reading age (defaults: warn at 15min,
+/// offline at 30min, both overridable per request).
 /// </summary>
 [ApiController]
 [Route("api/fleet/fleet")]
@@ -55,48 +25,7 @@ public class FleetStatusController : ControllerBase
         _dbStatus = dbStatus;
     }
 
-    /// <summary>
-    /// GET /api/fleet/fleet/status
-    ///
-    /// Returns the latest reading for each device registered to the caller's org,
-    /// together with truck/sensor metadata and a freshness status badge.
-    ///
-    /// Query parameters:
-    ///   warn_seconds    — age threshold (seconds) for WARN status   (default 900)
-    ///   offline_seconds — age threshold (seconds) for OFFLINE status (default 1800)
-    ///   limit           — max devices returned, clamped to 1–5000    (default 200)
-    ///
-    /// Response shape:
-    /// {
-    ///   "code": 0,
-    ///   "message": "Success",
-    ///   "details": {
-    ///     "nowUtc": "2026-03-27T10:00:00Z",
-    ///     "warnSeconds": 900,
-    ///     "offlineSeconds": 1800,
-    ///     "count": 3,
-    ///     "items": [
-    ///       {
-    ///         "status": "OK",
-    ///         "hardwareId": "HWID_AABBCCDD",
-    ///         "temperatureC": 4.2,
-    ///         "humidityPct": 65.1,
-    ///         "lightLux": 0.0,
-    ///         "batteryPct": 88,
-    ///         "ts": "2026-03-27T09:58:00Z",
-    ///         "ageSeconds": 120,
-    ///         "truckId": 5,
-    ///         "truckName": "Cold Truck A",
-    ///         "plate": null,
-    ///         "sensorName": "Front Sensor"
-    ///       }
-    ///     ]
-    ///   }
-    /// }
-    ///
-    /// Frontend uses this to drive the fleet overview dashboard cards and the
-    /// DeviceTabStrip coloured status dots.
-    /// </summary>
+    /// <summary>Drives the fleet overview dashboard cards and the device status dots.</summary>
     [HttpGet("status")]
     public async Task<IActionResult> GetFleetStatus(
         [FromQuery(Name = "warn_seconds")]    int warnSeconds    = 900,
@@ -115,7 +44,6 @@ public class FleetStatusController : ControllerBase
         var nowUtc = DateTime.UtcNow;
         var rows   = await _dbStatus.GetLatestPerDevice(limit, null);
 
-        // Local helper: classify a reading age into OK / WARN / OFFLINE
         string Classify(double ageSeconds)
         {
             if (ageSeconds >= offlineSeconds) return "OFFLINE";
@@ -176,35 +104,10 @@ public class FleetStatusController : ControllerBase
         });
     }
 
-    // ─── GET /api/fleet/fleet/poll-health ─────────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/fleet/poll-health
-    ///
-    /// Returns the current circuit breaker state for every device the ingest
-    /// service has attempted to poll. Useful for diagnosing connectivity issues
-    /// where a device is physically offline vs the backend can't reach TZone.
-    ///
-    /// Response:
-    /// {
-    ///   "details": {
-    ///     "devices": [
-    ///       {
-    ///         "hardwareId": "HWID_...",
-    ///         "state": "Closed",            // Closed | Open | HalfOpen
-    ///         "consecutiveFails": 0,
-    ///         "lastError": null,
-    ///         "nextPollAllowedUtc": null,    // only set when state = Open
-    ///         "lastSuccessAt": "2026-05-08T10:00:00Z"
-    ///       }
-    ///     ]
-    ///   }
-    /// }
-    ///
-    /// "Closed" = polling normally.
-    /// "Open"   = TZone calls are failing; backend is backing off.
-    ///            A device that is "OK" in /status but "Open" here means
-    ///            TZone is unreachable — readings are stale from our backend's side.
+    /// Circuit breaker state per device. "Open" means the cloud API is failing and the
+    /// backend is backing off — a device that's "OK" in /status but "Open" here means
+    /// readings are stale on our side even though the device itself is fine.
     /// </summary>
     [HttpGet("poll-health")]
     public IActionResult GetPollHealth()

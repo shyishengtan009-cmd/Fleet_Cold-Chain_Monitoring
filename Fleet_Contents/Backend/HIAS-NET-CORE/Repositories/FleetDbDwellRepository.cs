@@ -1,10 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using Dapper;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
+using FleetCore.Context;
+using FleetCore.Fleet;
 
-namespace HIAS_NET_CORE.Repositories;
+namespace FleetCore.Repositories;
 
 /// <summary>
 /// Per-device GPS dwell (prolonged-stationary) tracking state.

@@ -27,10 +27,10 @@ const topLevel: MenuItem[] = [
 ];
 
 const fleetItems: MenuItem[] = [
-  { label: "Fleet Dashboard", icon: "fa-solid fa-gauge", route: "/monitoring/tt19-fleet/dashboard" },
-  { label: "Device Settings", icon: "fa-solid fa-sliders", route: "/monitoring/tt19-fleet/device-settings" },
-  { label: "Cold Truck Real-Time Monitoring", icon: "fa-solid fa-map-location-dot", route: "/monitoring/tt19-fleet/real-time" },
-  { label: "Alert", icon: "fa-solid fa-bell", route: "/monitoring/tt19-fleet/alert" }
+  { label: "Fleet Dashboard", icon: "fa-solid fa-gauge", route: "/monitoring/fleet/dashboard" },
+  { label: "Device Settings", icon: "fa-solid fa-sliders", route: "/monitoring/fleet/device-settings" },
+  { label: "Cold Truck Real-Time Monitoring", icon: "fa-solid fa-map-location-dot", route: "/monitoring/fleet/real-time" },
+  { label: "Alert", icon: "fa-solid fa-bell", route: "/monitoring/fleet/alert" }
 ];
 
 const bottomLevel: MenuItem[] = [

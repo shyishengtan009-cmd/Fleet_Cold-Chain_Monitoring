@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Models.Fleet;
+using FleetCore.Context;
+using FleetCore.Fleet;
+using FleetCore.Models.Fleet;
 
-namespace HIAS_NET_CORE.Repositories;
+namespace FleetCore.Repositories;
 
 /// <summary>
 /// Repository for the Fleet alarm log table (iot.tt19_alarm_log).

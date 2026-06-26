@@ -1,6 +1,6 @@
-namespace HIAS_NET_CORE.Common;
+namespace FleetCore.Common;
 
-// Trimmed down from the original HIAS ConfigHelpers — only the constants the
+// Trimmed down from the original platform's ConfigHelpers — only the constants the
 // Fleet controllers actually reference (role-code check in FleetDevicesController.SeedDevice).
 public static class ConfigHelpers
 {

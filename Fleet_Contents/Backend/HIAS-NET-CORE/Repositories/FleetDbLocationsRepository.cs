@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dapper;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
+using FleetCore.Context;
+using FleetCore.Fleet;
 
-namespace HIAS_NET_CORE.Repositories;
+namespace FleetCore.Repositories;
 
 /// <summary>
 /// Fleet-wide named location library (depots, refuel stops, rest areas, customer sites).

@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace HIAS_NET_CORE.Fleet;
+namespace FleetCore.Fleet;
 
 /// <summary>
 /// Static logging facade for all Fleet (cold truck monitoring) components.

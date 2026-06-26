@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace HIAS_NET_CORE.Fleet.Hubs;
+namespace FleetCore.Fleet.Hubs;
 
 /// <summary>
 /// SignalR hub for real-time Fleet alarm push notifications.

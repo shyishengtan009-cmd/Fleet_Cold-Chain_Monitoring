@@ -80,7 +80,7 @@ const showExport = ref(false);
 
 async function checkDeviceRegistration() {
   if (import.meta.env.DEV) {
-    await api.fleet.seedDevice("HIAS-TEST-001", "HIAS1234").catch(() => {});
+    await api.fleet.seedDevice("DEMO-TEST-001", "DEMO1234").catch(() => {});
   }
   try {
     const result = await api.fleet.getDevices();
@@ -132,7 +132,7 @@ async function pollTick() {
 
 // ── Lifecycle ──────────────────────────────────────────────────────────────
 onMounted(async () => {
-  if (route.path.includes("tt19-fleet/alert")) {
+  if (route.path.includes("fleet/alert")) {
     activeTab.value = "alarm";
   }
   await checkDeviceRegistration();

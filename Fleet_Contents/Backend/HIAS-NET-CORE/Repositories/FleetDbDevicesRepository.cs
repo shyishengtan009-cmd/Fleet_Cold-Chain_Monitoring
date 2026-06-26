@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
+using FleetCore.Context;
+using FleetCore.Fleet;
 using Npgsql;
 
-namespace HIAS_NET_CORE.Repositories;
+namespace FleetCore.Repositories;
 
 /// <summary>
 /// Repository for the Fleet device registry (iot.tt19_devices).

@@ -1,39 +1,21 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Models.Fleet;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Fleet;
+using FleetCore.Models.Fleet;
+using FleetCore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 
-namespace HIAS_NET_CORE.Controllers;
+namespace FleetCore.Controllers;
 
 /// <summary>
-/// Provides access to the permanent alarm event log stored in iot.tt19_alarm_log.
-///
-/// ── What this controller does ─────────────────────────────────────────────────
-///   GET /api/fleet/alarm_log/recent          — latest alarms (polling endpoint)
-///   GET /api/fleet/alarm_log/by_date         — all alarms for a specific date
-///   GET /api/fleet/alarm_log/sensor_readings — all sensor readings for a date
-///                                              (used to build the alert report table)
-///
-/// ── Difference between alarm_log and realtime/alarms ─────────────────────────
-///   /realtime/alarms  — evaluates readings on-the-fly; includes WARN + ALARM;
-///                       no debounce; purely for retrospective analysis
-///   /alarm_log/*      — reads iot.tt19_alarm_log; entries here were written
-///                       during live ingest only when the debounce counter fired;
-///                       these are the "real" alarms that triggered notifications
-///
-/// ── Frontend polling ─────────────────────────────────────────────────────────
-///   The Cold Truck Alert page polls /recent every 30 seconds and passes a
-///   "since" timestamp so only newly-written alarm entries are returned.
-///   This drives the toast notifications and the alert count badge.
-///
-/// ── Organisation scoping ─────────────────────────────────────────────────────
-///   Every endpoint enforces FleetDbDevicesRepository.DeviceBelongsToOrg() so one org
-///   cannot read another org's alarm log.
+/// Read access to the permanent alarm event log (iot.tt19_alarm_log). Unlike
+/// /realtime/alarms (which evaluates readings on-the-fly), entries here were
+/// written during ingest only when the debounce counter actually fired — these
+/// are the alarms that triggered real notifications. Every endpoint enforces
+/// org scoping via DeviceBelongsToOrg().
 /// </summary>
 [ApiController]
 [Route("api/fleet/alarm_log")]
@@ -57,8 +39,6 @@ public class FleetAlarmLogController : ControllerBase
         _dbSettings = dbSettings;
     }
 
-    // ─── Helper: extract OrganizationId from JWT claim ────────────────────────
-
     private bool TryGetOrgId(out int orgId)
     {
         orgId = 0;
@@ -66,37 +46,9 @@ public class FleetAlarmLogController : ControllerBase
         return claim != null && int.TryParse(claim, out orgId);
     }
 
-    // ─── GET /api/fleet/alarm_log/recent ─────────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/alarm_log/recent?hardware_id=...&amp;since=2026-03-04T10:00:00Z&amp;limit=20
-    ///
-    /// Returns alarm log entries created AFTER the "since" timestamp.
-    /// If "since" is omitted, returns the most recent "limit" entries.
-    ///
-    /// Typical usage (frontend polling):
-    ///   Poll every 30s. On first load, omit "since" to get recent history.
-    ///   On subsequent polls, pass the timestamp of the last received entry
-    ///   as "since" so only new entries are returned.
-    ///
-    /// Query parameters:
-    ///   hardware_id — required; the device to query
-    ///   since       — optional; ISO-8601 UTC; return only entries after this time
-    ///   limit       — max entries returned, clamped to 1–200 (default 20)
-    ///
-    /// Response:
-    /// {
-    ///   "code": 0, "message": "Success",
-    ///   "details": {
-    ///     "hardwareId": "HWID_AABBCCDD",
-    ///     "count": 3,
-    ///     "rows": [
-    ///       { "id": 101, "hardware_id": "...", "sensor": "temperature", "value": 27.3,
-    ///         "message": "Temperature 27.3°C exceeded max 8°C", "fired_at": "..." },
-    ///       ...
-    ///     ]
-    ///   }
-    /// }
+    /// Alarm entries after "since" (ISO-8601 UTC), or the most recent "limit" if omitted.
+    /// Frontend polls this every 30s with the last-seen timestamp as "since".
     /// </summary>
     [HttpGet("recent")]
     public async Task<IActionResult> GetRecent(
@@ -130,22 +82,9 @@ public class FleetAlarmLogController : ControllerBase
         });
     }
 
-    // ─── GET /api/fleet/alarm_log/by_date ────────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/alarm_log/by_date?hardware_id=...&amp;date=2026-03-16
-    ///
-    /// Returns all alarm log entries for the given calendar date (local timezone).
-    /// "Date" is interpreted in local time: midnight to 23:59:59.9999999 local,
-    /// then converted to UTC for the DB query.
-    ///
-    /// Query parameters:
-    ///   hardware_id — required; device to query
-    ///   date        — required; date in YYYY-MM-DD format (e.g. "2026-03-16")
-    ///   limit       — max entries returned, clamped to 1–5000 (default 2000)
-    ///
-    /// Used by the Cold Truck Alerts page's date selector to show all alarms for
-    /// a specific day in the alert history table.
+    /// All alarm entries for one calendar date, in the device's local timezone.
+    /// Backs the Alerts page's date-picker history view.
     /// </summary>
     [HttpGet("by_date")]
     public async Task<IActionResult> GetByDate(
@@ -199,25 +138,9 @@ public class FleetAlarmLogController : ControllerBase
         });
     }
 
-    // ─── GET /api/fleet/alarm_log/sensor_readings ────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/alarm_log/sensor_readings?hardware_id=...&amp;date=2026-03-16&amp;limit=2000
-    ///
-    /// Returns all raw sensor readings for a specific date, shaped into the
-    /// alarm-log row format used by the Alert Report table in the frontend.
-    ///
-    /// Unlike /by_date (which reads iot.tt19_alarm_log), this endpoint reads
-    /// iot.tt19_data — the full sensor reading history — and applies a simple
-    /// status classification: temperature > 25°C = "WARNING", otherwise "OK".
-    ///
-    /// This gives the alert page a merged view of both alarm events and raw
-    /// readings so operators can see the full picture for the day.
-    ///
-    /// Query parameters:
-    ///   hardware_id — required; device to query
-    ///   date        — required; YYYY-MM-DD
-    ///   limit       — max rows, clamped to 1–5000 (default 2000)
+    /// Raw sensor readings for a date, reshaped into alarm-log row format so the
+    /// Alert page can show a merged view of events + readings for the day.
     /// </summary>
     [HttpGet("sensor_readings")]
     public async Task<IActionResult> GetSensorReadings(
@@ -315,33 +238,7 @@ public class FleetAlarmLogController : ControllerBase
         });
     }
 
-    // ─── GET /api/fleet/alarm_log/breach-summary ─────────────────────────────
-
-    /// <summary>
-    /// GET /api/fleet/alarm_log/breach-summary?hardware_id=...&amp;days=30
-    ///
-    /// Aggregates alarm log rows into per-sensor breach counts for the specified
-    /// lookback window. Useful for dashboard analytics showing which sensors
-    /// breach most frequently.
-    ///
-    /// Query parameters:
-    ///   hardware_id — required; device to query
-    ///   days        — lookback window in days, 1–365 (default 30)
-    ///
-    /// Response:
-    /// {
-    ///   "details": {
-    ///     "hardwareId": "HWID_...",
-    ///     "days": 30,
-    ///     "totalBreaches": 12,
-    ///     "breakdown": [
-    ///       { "field": "temperature", "alarmType": "ALARM", "breachCount": 8,
-    ///         "avgValue": 27.3, "firstBreachTs": "...", "lastBreachTs": "..." },
-    ///       ...
-    ///     ]
-    ///   }
-    /// }
-    /// </summary>
+    /// <summary>Per-sensor breach counts over a lookback window (1-365 days, default 30).</summary>
     [HttpGet("breach-summary")]
     public async Task<IActionResult> GetBreachSummary(
         [FromQuery(Name = "hardware_id")] string hardwareId,
@@ -388,20 +285,9 @@ public class FleetAlarmLogController : ControllerBase
         });
     }
 
-    // ─── POST /api/fleet/alarm_log/test/{hardwareId} ──────────────────────────
-
     /// <summary>
-    /// POST /api/fleet/alarm_log/test/{hardwareId}
-    ///
-    /// Inserts a synthetic "[TEST]" alarm log entry and pushes it via SignalR
-    /// so the frontend toast/notification pipeline can be verified end-to-end
-    /// without waiting for a real threshold breach.
-    ///
-    /// The test entry uses fixed values (temperature 35.2°C, threshold 30°C)
-    /// and is indistinguishable from a real alarm in the log — the "[TEST]"
-    /// prefix in the message is the only marker.
-    ///
-    /// Returns: { signalrPushed: true, alarmLogInserted: true }
+    /// Inserts a synthetic "[TEST]" alarm and pushes it over SignalR, so the
+    /// notification pipeline can be verified without waiting for a real breach.
     /// </summary>
     [HttpPost("test/{hardwareId}")]
     public async Task<IActionResult> TestAlarm(string hardwareId)

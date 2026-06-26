@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using Dapper;
-using HIAS_NET_CORE.Context;
+using FleetCore.Context;
 
-namespace HIAS_NET_CORE.Repositories;
+namespace FleetCore.Repositories;
 
 /// <summary>
 /// Reads the global TZone API credentials stored in iot.tt19_api_config.

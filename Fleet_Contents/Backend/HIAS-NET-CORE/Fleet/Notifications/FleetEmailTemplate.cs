@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace HIAS_NET_CORE.Fleet.Notifications;
+namespace FleetCore.Fleet.Notifications;
 
 /// <summary>
 /// Shared HTML building blocks for all Fleet notification emails.

@@ -4,13 +4,13 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Fleet.Notifications;
-using HIAS_NET_CORE.Repositories;
-using HIAS_NET_CORE.Models.Fleet;
+using FleetCore.Fleet;
+using FleetCore.Fleet.Notifications;
+using FleetCore.Repositories;
+using FleetCore.Models.Fleet;
 using Newtonsoft.Json.Linq;
 
-namespace HIAS_NET_CORE.Fleet.Alarm;
+namespace FleetCore.Fleet.Alarm;
 
 /// <summary>
 /// Checks a fresh sensor reading against the device's configured alarm thresholds

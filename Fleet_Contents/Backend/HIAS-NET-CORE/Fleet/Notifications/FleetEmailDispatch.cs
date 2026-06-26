@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
 
-namespace HIAS_NET_CORE.Fleet.Notifications;
+namespace FleetCore.Fleet.Notifications;
 
 /// <summary>
 /// Dispatcher for Fleet alarm notifications. Supports comma-separated recipient lists.
-/// Routes emails through the HIAS notification queue (production) or falls back to
+/// Routes emails through the parent platform's notification queue (production) or falls back to
 /// direct SMTP via FleetEmailService (local dev). Returns true if at least one
 /// send/enqueue succeeded.
 ///
@@ -15,7 +15,7 @@ namespace HIAS_NET_CORE.Fleet.Notifications;
 ///     → SendEmailQueueJob (Quartz) delivers via Brevo / SendGrid / SMPP
 ///     → Delivery outcome tracked in notification.notification_email
 ///
-///   Local dev (HIAS main DB not available):
+///   Local dev (parent platform DB not available):
 ///     → FleetEmailService.SendAlarmEmailAsync sends direct SMTP
 ///     → FleetEmailService.cs is a local-only file (never committed)
 ///

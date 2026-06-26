@@ -1,6 +1,6 @@
 using System;
 
-namespace HIAS_NET_CORE.Fleet;
+namespace FleetCore.Fleet;
 
 /// <summary>
 /// Timezone helpers for Fleet alarm and schedule logic.

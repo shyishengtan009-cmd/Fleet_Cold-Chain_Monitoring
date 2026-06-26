@@ -1,49 +1,18 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Context;
+using FleetCore.Fleet;
+using FleetCore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Dapper;
 
-namespace HIAS_NET_CORE.Controllers;
+namespace FleetCore.Controllers;
 
 /// <summary>
-/// Lightweight health-check endpoint for the Fleet subsystem.
-///
-/// ── What this controller does ─────────────────────────────────────────────────
-///   GET /api/fleet/health — returns DB connectivity status + last reading timestamp
-///
-/// ── Why this is public (AllowAnonymous) ──────────────────────────────────────
-///   Health endpoints should be accessible without credentials so that:
-///   - Azure / AWS load balancers can use it for health checks
-///   - Uptime monitoring services (UptimeRobot, Pingdom) can probe it
-///   - A developer can quickly check if the backend is alive with a browser
-///
-///   Only non-sensitive information is returned — DB "connected"/"unreachable"
-///   and the timestamp of the most recent sensor reading. No org data is exposed.
-///
-/// ── What "connected" means ────────────────────────────────────────────────────
-///   The health check runs a real SQL query for MAX(ts) across iot.tt19_data
-///   (the 30-day rolling live table) and iot.tt19_data_archive (everything older).
-///   This confirms:
-///   a) The PostgreSQL connection string is valid and the server is reachable
-///   b) The tables exist
-///   c) The app can execute queries
-///
-///   Querying tt19_data alone would falsely report "no readings" once a device's
-///   most recent reading ages past 30 days into the archive — checking both
-///   tables avoids that false alarm. Falls back to tt19_data only if the archive
-///   table doesn't exist on this database.
-///
-///   If any of these fail, the endpoint returns HTTP 503 with status "error".
-///
-/// ── Deployment usage ──────────────────────────────────────────────────────────
-///   Configure Azure App Service health check to probe GET /api/fleet/health.
-///   An HTTP 200 response means the app and DB are operational.
-///   An HTTP 503 response means the DB is unreachable — investigate connection string.
+/// Health check for load balancers/uptime monitors. Public on purpose — no org
+/// data is exposed, just DB connectivity and the latest reading timestamp.
 /// </summary>
 [ApiController]
 [Route("api/fleet/health")]
@@ -57,29 +26,6 @@ public class FleetHealthController : ControllerBase
         _databaseContext = databaseContext;
     }
 
-    /// <summary>
-    /// GET /api/fleet/health
-    ///
-    /// Pings the PostgreSQL database and returns the timestamp of the most recent
-    /// sensor reading across all devices.
-    ///
-    /// Response (healthy):
-    /// {
-    ///   "code":        0,
-    ///   "status":      "ok",
-    ///   "db":          "connected",
-    ///   "lastReading": "2026-03-27T09:58:00Z",   ← null if no readings exist yet
-    ///   "serverTime":  "2026-03-27T10:00:00Z"
-    /// }
-    ///
-    /// Response (DB unreachable) — HTTP 503:
-    /// {
-    ///   "code":   503,
-    ///   "status": "error",
-    ///   "db":     "unreachable",
-    ///   "error":  "connection refused"   ← the exception message
-    /// }
-    /// </summary>
     [HttpGet]
     public async Task<IActionResult> Get()
     {
@@ -136,26 +82,8 @@ SELECT MAX(ts) FROM (
     }
 
     /// <summary>
-    /// GET /api/fleet/health/metrics
-    ///
-    /// Returns operational metrics for the Fleet polling subsystem.
-    /// Requires authentication — intended for admin/ops dashboards, not load balancers.
-    ///
-    /// Response:
-    /// {
-    ///   "pollCycles":          1234,        ← total poll cycles since service start
-    ///   "lastPollDurationMs":  87,          ← how long the last full poll cycle took
-    ///   "lastPollDeviceCount": 12,          ← devices polled in the last cycle
-    ///   "secsSinceLastPoll":   4,           ← seconds elapsed since last cycle completed
-    ///   "openCircuitBreakers": 0,           ← devices currently in exponential backoff
-    ///   "totalDevicesTracked": 12,          ← total devices in circuit-breaker registry
-    ///   "emailsEnqueued":      47,          ← alarm emails successfully queued since start
-    ///   "emailsFailed":        0,           ← alarm emails that failed to queue since start
-    ///   "cacheHits":           892,         ← settings/location cache hits since start
-    ///   "cacheMisses":         14           ← settings/location cache misses since start
-    /// }
-    ///
-    /// secsSinceLastPoll = -1 means no poll cycle has completed yet (service just started).
+    /// Operational metrics for the polling subsystem — admin/ops use, not load balancers.
+    /// secsSinceLastPoll is -1 if no poll cycle has completed yet.
     /// </summary>
     [HttpGet("metrics")]
     [Authorize]

@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace HIAS_NET_CORE.Fleet;
+namespace FleetCore.Fleet;
 
 /// <summary>
 /// Abstraction layer for Fleet in-process caching.

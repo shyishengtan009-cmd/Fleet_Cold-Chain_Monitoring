@@ -27,7 +27,6 @@
     "@quasar/vite-plugin": "1.4.1",
     "@types/leaflet": "^1.9.12",
     "@vitejs/plugin-vue": "4.1.0",
-    "playwright": "^1.61.1",
     "sass": "1.32.12",
     "typescript": "^5.0.2",
     "vite": "4.3.9"

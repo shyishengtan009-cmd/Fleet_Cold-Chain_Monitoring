@@ -1,35 +1,16 @@
 using System;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HIAS_NET_CORE.Controllers;
+namespace FleetCore.Controllers;
 
 /// <summary>
-/// Provides historical sensor reading data for a single device.
-///
-/// ── What this controller does ─────────────────────────────────────────────────
-///   GET /api/fleet/history/meta    — returns the earliest and latest timestamps
-///                                    available for a device (quick DB probe)
-///   GET /api/fleet/history/range   — returns all readings in a UTC time window
-///
-/// ── Typical frontend flow ─────────────────────────────────────────────────────
-///   1. Call /meta to discover what date range is available for the device
-///   2. Let the user pick a start/end date in the UI
-///   3. Call /range with the selected window to fetch chart data
-///
-/// ── Performance notes ─────────────────────────────────────────────────────────
-///   /meta does NOT count rows — counting across a large time-series table is slow.
-///   If you need a row count, use the /range endpoint and check "count" in the
-///   response. The limit parameter (max 50000) prevents memory issues on large ranges.
-///
-///   iot.tt19_data has an index on (hardware_id, ts DESC) so both endpoints
-///   are fast even for large datasets.
-///
-/// ── Organisation scoping ─────────────────────────────────────────────────────
-///   Both endpoints enforce FleetDbDevicesRepository.DeviceBelongsToOrg() to prevent one
-///   organisation from reading another org's device history.
+/// Historical sensor readings for a single device. Typical flow: call /meta to
+/// discover the available date range, then /range (raw) or /aggregated (bucketed)
+/// for the chart data. iot.tt19_data is indexed on (hardware_id, ts DESC) so both
+/// stay fast on large datasets.
 /// </summary>
 [ApiController]
 [Route("api/fleet/history")]
@@ -45,8 +26,6 @@ public class FleetHistoryController : ControllerBase
         _dbRealtime = dbRealtime;
     }
 
-    // ─── Helper: extract OrganizationId from JWT claim ────────────────────────
-
     private bool TryGetOrgId(out int orgId)
     {
         orgId = 0;
@@ -54,31 +33,9 @@ public class FleetHistoryController : ControllerBase
         return claim != null && int.TryParse(claim, out orgId);
     }
 
-    // ─── GET /api/fleet/history/meta ─────────────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/history/meta?hardware_id=HWID_AABBCCDD
-    ///
-    /// Returns the first and last timestamps for which data exists in iot.tt19_data
-    /// for the given device. Use this to discover what date range to offer in the UI.
-    ///
-    /// Response (data exists):
-    /// {
-    ///   "code": 0, "message": "Success",
-    ///   "details": {
-    ///     "found": true,
-    ///     "hardwareId": "HWID_AABBCCDD",
-    ///     "minTs": "2026-01-15T08:00:00Z",
-    ///     "maxTs": "2026-03-27T10:00:00Z",
-    ///     "count": 0   ← always 0 (not fetched for performance)
-    ///   }
-    /// }
-    ///
-    /// Response (no data yet):
-    /// { "code": 0, "message": "Success", "details": { "found": false, ... } }
-    ///
-    /// Note: count is intentionally 0 — fetching the row count for large tables is
-    /// expensive. Use the /range endpoint with your selected window to get a count.
+    /// Earliest/latest timestamp available for a device. count is always 0 here —
+    /// counting rows across a large time-series table is expensive; use /range for that.
     /// </summary>
     [HttpGet("meta")]
     public async Task<IActionResult> GetMeta([FromQuery(Name = "hardware_id")] string hardwareId = "")
@@ -113,34 +70,7 @@ public class FleetHistoryController : ControllerBase
         });
     }
 
-    // ─── GET /api/fleet/history/range ────────────────────────────────────────
-
-    /// <summary>
-    /// GET /api/fleet/history/range?hardware_id=...&amp;start_utc=...&amp;end_utc=...&amp;limit=20000
-    ///
-    /// Returns all sensor readings for a device within the given UTC time window.
-    /// Results are ordered oldest-first (chronological, good for chart rendering).
-    ///
-    /// Query parameters:
-    ///   hardware_id — required; device to query
-    ///   start_utc   — required; ISO-8601 UTC timestamp (e.g. "2026-03-01T00:00:00Z")
-    ///   end_utc     — required; ISO-8601 UTC timestamp (e.g. "2026-03-02T00:00:00Z")
-    ///   limit       — max rows, clamped to 1–50000 (default 20000)
-    ///
-    /// Response:
-    /// {
-    ///   "code": 0, "message": "Success",
-    ///   "details": {
-    ///     "hardwareId": "HWID_AABBCCDD",
-    ///     "startUtc": "2026-03-01T00:00:00Z",
-    ///     "endUtc": "2026-03-02T00:00:00Z",
-    ///     "count": 2880,
-    ///     "rows": [ { "ts": "...", "temperature_c": 4.1, ... }, ... ]
-    ///   }
-    /// }
-    ///
-    /// Used by the Line Chart and the History Report page.
-    /// </summary>
+    /// <summary>Raw readings in a UTC window, oldest-first. Backs the line chart and history report.</summary>
     [HttpGet("range")]
     public async Task<IActionResult> GetRange(
         [FromQuery(Name = "hardware_id")] string hardwareId  = "",
@@ -183,19 +113,9 @@ public class FleetHistoryController : ControllerBase
         });
     }
 
-    // ─── GET /api/fleet/history/aggregated ───────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/history/aggregated?hardware_id=...&amp;start_utc=...&amp;end_utc=...&amp;bucket_minutes=60
-    ///
-    /// Returns hourly (or custom bucket) min/max/avg aggregates for chart rendering.
-    /// Use this instead of /range when the requested window is larger than 24 hours —
-    /// a 7-day query returns ~168 hourly buckets instead of ~60 000 raw rows.
-    ///
-    /// bucket_minutes is clamped to 5–1440 (default 60 = hourly).
-    ///
-    /// Each row contains: ts, temp_min/max/avg, hum_min/max/avg, light_min/max/avg,
-    /// batt_min/max/avg.
+    /// Bucketed min/max/avg aggregates (default hourly) — use instead of /range for
+    /// windows over 24h, e.g. a 7-day query returns ~168 buckets instead of ~60k rows.
     /// </summary>
     [HttpGet("aggregated")]
     public async Task<IActionResult> GetAggregated(

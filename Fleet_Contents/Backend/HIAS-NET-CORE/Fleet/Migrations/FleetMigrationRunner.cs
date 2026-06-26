@@ -3,10 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Context;
+using FleetCore.Context;
 using Npgsql;
 
-namespace HIAS_NET_CORE.Fleet.Migrations;
+namespace FleetCore.Fleet.Migrations;
 
 /// <summary>
 /// Runs numbered SQL migration scripts for the Fleet schema.
@@ -34,7 +34,7 @@ namespace HIAS_NET_CORE.Fleet.Migrations;
 /// </summary>
 public static class FleetMigrationRunner
 {
-    // Embedded resource names contain this segment: HIAS_NET_CORE.Fleet.Migrations.Scripts.*
+    // Embedded resource names contain this segment: FleetCore.Fleet.Migrations.Scripts.*
     private const string ScriptMarker = "Fleet.Migrations.Scripts.";
 
     // ─── RunAsync ─────────────────────────────────────────────────────────────

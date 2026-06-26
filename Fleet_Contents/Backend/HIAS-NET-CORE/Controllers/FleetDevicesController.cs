@@ -3,51 +3,20 @@ using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Common;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Common;
+using FleetCore.Fleet;
+using FleetCore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 
-namespace HIAS_NET_CORE.Controllers;
+namespace FleetCore.Controllers;
 
 /// <summary>
-/// Manages the device registry — listing, registering, unregistering, and seeding devices.
-///
-/// ── What this controller does ─────────────────────────────────────────────────
-///   GET    /api/fleet/devices            — list all devices for the caller's org
-///   POST   /api/fleet/devices/register   — claim an unregistered device by activation code
-///   DELETE /api/fleet/devices/{hwId}     — unregister (release) a device from the org
-///   POST   /api/fleet/devices/seed       — admin/dev: insert an unclaimed device row
-///
-/// ── Device lifecycle ──────────────────────────────────────────────────────────
-///   1. SEED (admin/dev) — A device row is created with hardware_id + activation_code
-///      but no organization_id. This row represents a physical device that exists
-///      but hasn't been claimed by any org yet.
-///
-///   2. REGISTER (user) — An org admin enters the hardware_id + activation_code printed
-///      on the device label. The server verifies the activation code and sets
-///      organization_id on the row. The device is now owned by that org.
-///
-///   3. UNREGISTER (user) — Sets organization_id back to NULL. The device becomes
-///      claimable again. Data in iot.tt19_data is NOT deleted.
-///
-/// ── Per-device API credentials ───────────────────────────────────────────────
-///   Each device can optionally have its own TZone API credentials:
-///     app_id, app_key, app_secret — stored in iot.tt19_devices
-///   These are used by FleetIngestService to authenticate cloud API calls.
-///   If not set, the global credentials from appsettings.json are used.
-///
-/// ── device_int_id requirement ────────────────────────────────────────────────
-///   The device_int_id column must be set for cloud polling to work.
-///   This is the TZone internal integer ID for the device — find it via
-///   GET /Device?key={hardware_id} on the TZone API Swagger.
-///   Without device_int_id, the ingest service silently skips the device.
-///
-/// ── Organisation scoping ─────────────────────────────────────────────────────
-///   All endpoints read the caller's org from the JWT "OrganizationId" claim.
-///   Users can only list/register/unregister devices within their own org.
+/// Device registry: list, register (claim via activation code), unregister, and
+/// admin-seed unclaimed devices. Lifecycle is seed (no org) → register (org claims
+/// it) → unregister (releases it, sensor history is kept). All endpoints scope to
+/// the caller's org via the JWT's OrganizationId claim.
 /// </summary>
 [ApiController]
 [Route("api/fleet/devices")]
@@ -63,27 +32,6 @@ public class FleetDevicesController : ControllerBase
         _dbSettings = dbSettings;
     }
 
-    // ─── GET /api/fleet/devices ───────────────────────────────────────────────
-
-    /// <summary>
-    /// GET /api/fleet/devices
-    ///
-    /// Returns all Fleet devices registered to the caller's organisation.
-    /// Used by the frontend to decide whether to show the device activation portal
-    /// and to populate the device selector on the Device Settings page.
-    ///
-    /// Response:
-    /// {
-    ///   "code": 0,
-    ///   "message": "Success",
-    ///   "details": [
-    ///     { "id": 12, "hardware_id": "HWID_AABBCCDD", "label": "Cold Truck A Sensor",
-    ///       "organization_id": 1001, "registered_at": "2026-01-15T09:00:00Z", ... }
-    ///   ]
-    /// }
-    ///
-    /// If the org has no devices yet, returns an empty array.
-    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetDevices()
     {
@@ -100,33 +48,7 @@ public class FleetDevicesController : ControllerBase
         });
     }
 
-    // ─── POST /api/fleet/devices/register ────────────────────────────────────
-
-    /// <summary>
-    /// POST /api/fleet/devices/register
-    ///
-    /// Registers a Fleet device to the caller's organisation by verifying
-    /// the activation code printed on the device label.
-    ///
-    /// Body ([FromBody]):
-    /// {
-    ///   "HardwareId":     "HWID_AABBCCDD",     ← required; case-insensitive
-    ///   "ActivationCode": "ACT-12345",           ← required; must match DB
-    ///   "Label":          "Cold Truck A Sensor", ← optional display name
-    ///   "AppId":          "my_app_id",           ← optional per-device TZone creds
-    ///   "AppKey":         "my_app_key",
-    ///   "AppSecret":      "my_app_secret"
-    /// }
-    ///
-    /// Returns 400 if:
-    ///   - hardware_id / activation_code not provided
-    ///   - activation_code does not match the stored value
-    ///   - device is already registered to another org
-    ///
-    /// On success:
-    /// { "code": 0, "message": "Device registered successfully.",
-    ///   "details": { "hardware_id": "HWID_AABBCCDD" } }
-    /// </summary>
+    /// <summary>Claims a device for the caller's org by verifying its activation code.</summary>
     [HttpPost("register")]
     public async Task<IActionResult> RegisterDevice([FromBody] FleetRegisterDeviceRequest request)
     {
@@ -159,19 +81,7 @@ public class FleetDevicesController : ControllerBase
         });
     }
 
-    // ─── DELETE /api/fleet/devices/{hardwareId} ───────────────────────────────
-
-    /// <summary>
-    /// DELETE /api/fleet/devices/HWID_AABBCCDD
-    ///
-    /// Unregisters a device from the caller's organisation by setting
-    /// organization_id back to NULL. The device can then be claimed by another org.
-    ///
-    /// This does NOT delete any sensor data — iot.tt19_data rows are preserved.
-    ///
-    /// Returns 400 if the device is not found in this org.
-    /// Returns 200 on success.
-    /// </summary>
+    /// <summary>Releases a device from the caller's org (sensor history is preserved).</summary>
     [HttpDelete("{hardwareId}")]
     public async Task<IActionResult> UnregisterDevice(string hardwareId)
     {
@@ -188,29 +98,9 @@ public class FleetDevicesController : ControllerBase
         return Ok(new { code = 0, message = "Device unregistered successfully." });
     }
 
-    // ─── POST /api/fleet/devices/seed ────────────────────────────────────────
-
     /// <summary>
-    /// POST /api/fleet/devices/seed
-    ///
-    /// Admin / developer utility: inserts an unclaimed device row so it can be
-    /// claimed via the activation portal by any org.
-    ///
-    /// This is how a new physical device is initially introduced into the system.
-    /// In production you would run this once per device when it ships.
-    /// In development, use Swagger or this endpoint to add test devices.
-    ///
-    /// Body ([FromBody]):
-    /// {
-    ///   "HardwareId":     "HWID_AABBCCDD",  ← required; the hardware_id on the device label
-    ///   "ActivationCode": "ACT-12345"        ← required; printed on the device label
-    /// }
-    ///
-    /// This endpoint is idempotent — calling it twice with the same hardware_id
-    /// returns 200 both times (first call inserts, second call is a no-op).
-    ///
-    /// Requires authentication (normal JWT) to prevent abuse — but no org check,
-    /// since the device is not owned by anyone yet.
+    /// Admin/dev utility: inserts an unclaimed device row so it can later be
+    /// registered by any org. Idempotent — re-seeding the same hardware_id is a no-op.
     /// </summary>
     [HttpPost("seed")]
     public async Task<IActionResult> SeedDevice([FromBody] FleetSeedDeviceRequest request)
@@ -244,32 +134,9 @@ public class FleetDevicesController : ControllerBase
         });
     }
 
-    // ─── GET /api/fleet/devices/summary ──────────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/devices/summary?limit=500
-    ///
-    /// Unified device list — every registered device for the caller's org,
-    /// enriched with its latest telemetry reading via a LATERAL JOIN.
-    /// Devices with no telemetry yet appear with null sensor fields and
-    /// has_polling = false when device_int_id is missing.
-    ///
-    /// Response per item:
-    /// {
-    ///   "hardware_id":      "HWID_AABBCCDD",
-    ///   "label":            "Cold Truck A",
-    ///   "device_int_id":    12345,
-    ///   "has_polling":      true,
-    ///   "has_custom_creds": false,
-    ///   "registered_at":    "2026-01-15T09:00:00Z",
-    ///   "ts":               "2026-05-21T10:00:00Z",   // null if no data yet
-    ///   "temperature_c":    4.2,
-    ///   "humidity_pct":     65.1,
-    ///   "battery_pct":      88.0,
-    ///   "lat":              3.147,
-    ///   "lng":              101.693,
-    ///   "truck_name":       "Cold Truck A"
-    /// }
+    /// Every device for the caller's org, enriched with its latest telemetry
+    /// reading via a LATERAL JOIN. Devices with no telemetry yet get null sensor fields.
     /// </summary>
     [HttpGet("summary")]
     public async Task<IActionResult> GetDevicesSummary(
@@ -282,26 +149,9 @@ public class FleetDevicesController : ControllerBase
         return Ok(new { code = 0, message = "Success", details = items });
     }
 
-    // ─── PUT /api/fleet/devices/{hardwareId} ──────────────────────────────────
-
     /// <summary>
-    /// PUT /api/fleet/devices/HWID_AABBCCDD
-    ///
-    /// Updates mutable registration fields. Only supplied JSON keys are changed;
+    /// Patch-style update — only JSON keys present in the body are changed,
     /// absent keys leave the existing value untouched.
-    ///
-    /// Body (all fields optional — only include what you want to change):
-    /// {
-    ///   "label":             "New Truck Name",   // null = clear the label
-    ///   "device_int_id":     12345,              // null = clear (stops ingest polling)
-    ///   "app_id":            "new_id",           // omit = keep existing
-    ///   "app_key":           "new_key",
-    ///   "app_secret":        "new_secret",
-    ///   "clear_credentials": false               // true = wipe all three cred fields
-    /// }
-    ///
-    /// Returns 403 if the device is not owned by the caller's org.
-    /// Returns 400 if hardware_id is invalid or no fields are supplied.
     /// </summary>
     [HttpPut("{hardwareId}")]
     public async Task<IActionResult> UpdateDevice(string hardwareId)
@@ -365,8 +215,6 @@ public class FleetDevicesController : ControllerBase
         return Ok(new { code = 0, message = "Device updated successfully." });
     }
 
-    // ─── Helper ───────────────────────────────────────────────────────────────
-
     private bool TryGetOrgId(out int orgId)
     {
         orgId = 0;
@@ -375,14 +223,8 @@ public class FleetDevicesController : ControllerBase
     }
 }
 
-// ─── Request DTOs ─────────────────────────────────────────────────────────────
-// These are placed in the same file because they are small and only used here.
-// If they grow, move them to Models/Fleet/.
+// Small request DTOs, kept here since they're only used by this controller.
 
-/// <summary>
-/// Body for POST /api/fleet/devices/seed.
-/// Creates an unclaimed device row (no org owner).
-/// </summary>
 public class FleetSeedDeviceRequest
 {
     [JsonPropertyName("hardware_id")]
@@ -390,15 +232,9 @@ public class FleetSeedDeviceRequest
     [JsonPropertyName("activation_code")]
     public string ActivationCode { get; set; } = "";
     [JsonPropertyName("device_int_id")]
-    public long?  DeviceIntId    { get; set; }       // TZone internal integer ID — required for ingest polling
+    public long?  DeviceIntId    { get; set; }
 }
 
-/// <summary>
-/// Body for POST /api/fleet/devices/register.
-/// Claims a device for the caller's organisation using the activation code.
-/// Per-device API credentials (AppId/Key/Secret) are optional — if omitted,
-/// the global credentials from appsettings.json are used for cloud polling.
-/// </summary>
 public class FleetRegisterDeviceRequest
 {
     [JsonPropertyName("hardware_id")]

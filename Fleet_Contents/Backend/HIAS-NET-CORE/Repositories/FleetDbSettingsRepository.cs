@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Dapper;
 using Npgsql;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
+using FleetCore.Context;
+using FleetCore.Fleet;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace HIAS_NET_CORE.Repositories;
+namespace FleetCore.Repositories;
 
 /// <summary>
 /// Repository for device settings stored in iot.device_settings.

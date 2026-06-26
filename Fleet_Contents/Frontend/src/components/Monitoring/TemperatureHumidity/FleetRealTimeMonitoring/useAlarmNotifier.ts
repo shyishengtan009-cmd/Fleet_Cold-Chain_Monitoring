@@ -50,7 +50,7 @@ export function useAlarmNotifier() {
       userId: 0,
       message: `[${label}] ${entry.message}`,
       notificationCreationDate: entry.created_at,
-      urlLink: "/monitoring/tt19-fleet/real-time"
+      urlLink: "/monitoring/fleet/real-time"
     });
     if (notificationStore.unread.length > MAX_UNREAD) notificationStore.unread.splice(MAX_UNREAD);
 
@@ -98,7 +98,7 @@ export function useAlarmNotifier() {
           userId: 0,
           message: `[${label}] ${entry.message}`,
           notificationCreationDate: entry.created_at,
-          urlLink: "/monitoring/tt19-fleet/real-time"
+          urlLink: "/monitoring/fleet/real-time"
         });
       }
       if (notificationStore.unread.length > MAX_UNREAD) notificationStore.unread.splice(MAX_UNREAD);
@@ -229,7 +229,7 @@ export function useAlarmNotifier() {
       userId: 0,
       message: fakeEntry.message,
       notificationCreationDate: fakeEntry.created_at,
-      urlLink: "/monitoring/tt19-fleet/real-time"
+      urlLink: "/monitoring/fleet/real-time"
     });
 
     $q.notify({

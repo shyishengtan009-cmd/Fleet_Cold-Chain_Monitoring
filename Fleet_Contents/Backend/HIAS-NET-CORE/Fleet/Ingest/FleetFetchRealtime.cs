@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Fleet.Alarm;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Fleet;
+using FleetCore.Fleet.Alarm;
+using FleetCore.Repositories;
 
-namespace HIAS_NET_CORE.Fleet.Ingest;
+namespace FleetCore.Fleet.Ingest;
 
 /// <summary>
 /// Fetches one sensor reading from the TZone cloud and ingests it into PostgreSQL.

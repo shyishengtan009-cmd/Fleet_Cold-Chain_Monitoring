@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "HIAS-NET-CORE": {
+    "FleetCore": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace HIAS_NET_CORE.Fleet;
+namespace FleetCore.Fleet;
 
 /// <summary>
 /// Per-device exponential backoff when TZone polls fail.

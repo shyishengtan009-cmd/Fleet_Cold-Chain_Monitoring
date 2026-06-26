@@ -1,52 +1,22 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Fleet.Scheduling;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Fleet;
+using FleetCore.Fleet.Scheduling;
+using FleetCore.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using QuestPDF.Fluent;
 
-namespace HIAS_NET_CORE.Controllers;
+namespace FleetCore.Controllers;
 
 /// <summary>
-/// Manages cold-truck trip records — open, close, list, and save GPS routes.
-///
-/// ── What this controller does ─────────────────────────────────────────────────
-///   GET  /api/fleet/trips            — list trips (all devices or one device)
-///   GET  /api/fleet/trips/list       — trips for one device including trip_data
-///   GET  /api/fleet/trips/{id}       — single trip with full GPS points payload
-///   POST /api/fleet/trips/open       — create a new open trip (no end_time yet)
-///   POST /api/fleet/trips/{id}/close — close an open trip and set end_time
-///   POST /api/fleet/trips/save       — create a completed trip with GPS data
-///                                      (Pattern B: post-trip batch upload)
-///
-/// ── Two trip creation patterns ────────────────────────────────────────────────
-///   Pattern A — Live trip (typical usage):
-///     1. POST /open         → creates trip with start_time, end_time = NULL
-///     2. Ingest service appends GPS points automatically as readings arrive
-///     3. POST /{id}/close   → sets end_time, finalises distance from stored points
-///
-///   Pattern B — Post-trip batch upload (legacy / manual):
-///     POST /save with full trip data including GPS points array
-///     The server stores the provided trip_data JSON blob as-is.
-///
-/// ── Organisation scoping ─────────────────────────────────────────────────────
-///   - ListTrips: scoped by orgId via SQL JOIN
-///   - GetTripsForDevice, GetTrip, OpenTrip, CloseTrip, SaveTrip:
-///     device ownership verified via FleetDbDevicesRepository.DeviceBelongsToOrg()
-///   - GetTrip also verifies ownership after loading the trip (trip → hardware_id → org check)
-///
-/// ── JSON body parsing ─────────────────────────────────────────────────────────
-///   POST actions read the body as raw JSON (not [FromBody]) because JObject gives
-///   more control over nullable fields and avoids System.Text.Json deserialization
-///   issues with mixed-type or null values in the trip_data blob.
-///
-/// ── DB tables used ────────────────────────────────────────────────────────────
-///   iot.trips — trip records with GPS route in trip_data JSON column
-///   See FleetDbTripsRepository.cs for the full schema and helper method documentation.
+/// Cold-truck trip records — open/close/list and GPS route storage in iot.trips.
+/// Two creation patterns: live (POST /open, ingest appends points, POST /{id}/close
+/// finalizes distance) or batch (POST /save with the full trip + points up front).
+/// POST bodies are read as raw JObject rather than [FromBody] for more control over
+/// nullable/mixed-type fields in the trip_data blob.
 /// </summary>
 [ApiController]
 [Route("api/fleet/trips")]
@@ -73,8 +43,6 @@ public class FleetTripsController : ControllerBase
         _dbAlarmLog = dbAlarmLog;
     }
 
-    // ─── Helper: extract OrganizationId from JWT claim ────────────────────────
-
     private bool TryGetOrgId(out int orgId)
     {
         orgId = 0;
@@ -82,17 +50,9 @@ public class FleetTripsController : ControllerBase
         return claim != null && int.TryParse(claim, out orgId);
     }
 
-    // ─── GET /api/fleet/trips ─────────────────────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/trips?hardware_id=...&amp;limit=50
-    ///
-    /// Returns a list of trips. If hardware_id is provided, scoped to that device.
-    /// If hardware_id is omitted, returns trips for all devices in the caller's org.
-    /// Results are ordered by start_time DESC (newest first).
-    ///
-    /// Note: This endpoint does NOT return the full GPS points blob.
-    ///       Use GET /api/fleet/trips/{id} to get the full trip with GPS data.
+    /// Trip list, newest-first — all devices in the org, or one if hardware_id is given.
+    /// Does not include the GPS points blob; use GET /{id} for that.
     /// </summary>
     [HttpGet]
     public async Task<IActionResult> ListTrips(
@@ -118,17 +78,7 @@ public class FleetTripsController : ControllerBase
         return Ok(new { code = 0, message = "Success", details = new { count = trips.Count, trips } });
     }
 
-    // ─── GET /api/fleet/trips/list ────────────────────────────────────────────
-
-    /// <summary>
-    /// GET /api/fleet/trips/list?hardware_id=HWID_AABBCCDD
-    ///
-    /// Returns all trips for a specific device, including the trip_data JSON blob
-    /// (GPS points, route metadata). Use this for the trip history list view.
-    ///
-    /// Unlike the main GET /trips, this endpoint includes the trip_data column so
-    /// the frontend can display route statistics for each trip in the list.
-    /// </summary>
+    /// <summary>All trips for one device, including trip_data so the list view can show route stats.</summary>
     [HttpGet("list")]
     public async Task<IActionResult> GetTripsForDevice([FromQuery(Name = "hardware_id")] string hardwareId = "")
     {
@@ -146,18 +96,9 @@ public class FleetTripsController : ControllerBase
         return Ok(new { code = 0, message = "Success", details = new { hardwareId, count = trips.Count, trips } });
     }
 
-    // ─── GET /api/fleet/trips/{id} ────────────────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/trips/123
-    ///
-    /// Returns a single trip by its database ID, including the full GPS points
-    /// payload in trip_data. Use this when the user clicks on a trip to view the
-    /// route on the map.
-    ///
-    /// Returns 403 if the trip ID does not exist OR if the trip's device belongs
-    /// to a different org than the caller. This is intentional — we don't reveal
-    /// whether the ID exists for a foreign org.
+    /// Single trip with full GPS points, for the route map view. Returns 403 (not 404)
+    /// for both a missing ID and a foreign-org trip, so existence isn't leaked.
     /// </summary>
     [HttpGet("{id:long}")]
     public async Task<IActionResult> GetTrip(long id)
@@ -177,27 +118,7 @@ public class FleetTripsController : ControllerBase
         return Ok(new { code = 0, message = "Success", details = trip });
     }
 
-    // ─── POST /api/fleet/trips/open ───────────────────────────────────────────
-
-    /// <summary>
-    /// POST /api/fleet/trips/open
-    ///
-    /// Creates a new open trip (Pattern A — live trip). The trip has a start_time
-    /// but no end_time. The ingest service will append GPS points automatically
-    /// as new sensor readings arrive from the device.
-    ///
-    /// Body (JSON):
-    /// {
-    ///   "hardware_id": "HWID_AABBCCDD",
-    ///   "start_time":  "2026-03-27T08:00:00Z"
-    /// }
-    ///
-    /// Response:
-    /// { "code": 0, "message": "Success", "details": { "trip_id": 42 } }
-    ///
-    /// Call POST /trips/{id}/close when the trip ends to set end_time and
-    /// finalise the total distance from the accumulated GPS points.
-    /// </summary>
+    /// <summary>Opens a live trip (start_time set, end_time null) — ingest appends GPS points as they arrive.</summary>
     [HttpPost("open")]
     public async Task<IActionResult> OpenTrip()
     {
@@ -273,23 +194,7 @@ public class FleetTripsController : ControllerBase
         }
     }
 
-    // ─── POST /api/fleet/trips/{id}/close ────────────────────────────────────
-
-    /// <summary>
-    /// POST /api/fleet/trips/123/close
-    ///
-    /// Closes an open trip. Sets end_time and recalculates total_distance_km
-    /// from the GPS points accumulated during the trip.
-    ///
-    /// Body (JSON):
-    /// { "end_time": "2026-03-27T16:30:00Z" }
-    ///
-    /// Response on success:
-    /// { "code": 0, "message": "Success", "details": { "trip_id": 123, "total_distance_km": 47.2, ... } }
-    ///
-    /// Returns 400 if the trip was already closed or does not exist.
-    /// Returns 403 if the trip's device belongs to a different org.
-    /// </summary>
+    /// <summary>Closes a trip, setting end_time and recalculating total_distance_km from the GPS points.</summary>
     [HttpPost("{id:long}/close")]
     public async Task<IActionResult> CloseTrip(long id)
     {
@@ -372,32 +277,7 @@ public class FleetTripsController : ControllerBase
         }
     }
 
-    // ─── POST /api/fleet/trips/save ───────────────────────────────────────────
-
-    /// <summary>
-    /// POST /api/fleet/trips/save
-    ///
-    /// Creates a completed trip with full GPS data in one request (Pattern B).
-    /// Use this when the trip data is uploaded as a batch after the trip ends,
-    /// rather than being accumulated live during the trip.
-    ///
-    /// Body (JSON):
-    /// {
-    ///   "hardware_id":        "HWID_AABBCCDD",
-    ///   "start_time":         "2026-03-27T08:00:00Z",
-    ///   "end_time":           "2026-03-27T16:30:00Z",
-    ///   "total_distance_km":  47.2,
-    ///   "points": [
-    ///     { "lat": 3.139, "lon": 101.686, "ts": "2026-03-27T08:00:00Z" },
-    ///     ...
-    ///   ]
-    /// }
-    ///
-    /// The entire body is stored as the trip_data JSON blob in iot.trips.
-    ///
-    /// Response:
-    /// { "code": 0, "message": "Success", "details": { "trip_id": 43, ... } }
-    /// </summary>
+    /// <summary>Batch-creates a completed trip with full GPS data in one request; body is stored as-is in trip_data.</summary>
     [HttpPost("save")]
     public async Task<IActionResult> SaveTrip()
     {
@@ -437,21 +317,9 @@ public class FleetTripsController : ControllerBase
         }
     }
 
-    // ─── GET /api/fleet/trips/{id}/report.pdf ────────────────────────────────
-
     /// <summary>
-    /// GET /api/fleet/trips/123/report.pdf
-    ///
-    /// Generates and streams a PDF cold-chain trip report for the given trip.
-    ///
-    /// The report contains:
-    ///   - Trip summary (start/end time MYT, duration, distance)
-    ///   - Sensor statistics (min/max/avg temperature, humidity, battery)
-    ///   - Alarm events table (all alarms during the trip)
-    ///   - Full sensor readings table (capped at 500 rows)
-    ///
-    /// Returns 403 if the trip does not exist or belongs to another org.
-    /// Returns 400 if the trip has no sensor data (readings window is empty).
+    /// Streams a PDF cold-chain trip report: summary, sensor stats, alarm events,
+    /// and a capped readings table.
     /// </summary>
     [HttpGet("{id:long}/report.pdf")]
     public async Task<IActionResult> GetTripReport(long id)
@@ -467,7 +335,6 @@ public class FleetTripsController : ControllerBase
         if (string.IsNullOrWhiteSpace(tripHwId) || !await _dbDevices.DeviceBelongsToOrg(tripHwId, orgId))
             return StatusCode(403, new { code = 403, message = "Access denied." });
 
-        // ── Parse trip time window ────────────────────────────────────────────
         var startIso = trip.TryGetValue("start_time", out var sv) ? sv?.ToString() : null;
         var endIso   = trip.TryGetValue("end_time",   out var ev) ? ev?.ToString() : null;
 
@@ -480,11 +347,9 @@ public class FleetTripsController : ControllerBase
             ? ed.UtcDateTime
             : DateTime.UtcNow;
 
-        // ── Load supporting data in parallel ──────────────────────────────────
-        // NOTE: up to 5000 readings are loaded into memory at once for PDF generation.
-        // A 24-hour trip at 10 s intervals = ~8,640 points (capped here at 5000).
-        // If memory becomes a concern under concurrent PDF requests, reduce the cap
-        // or stream the PDF row-by-row instead of buffering everything upfront.
+        // Up to 5000 readings loaded into memory at once (a 24h trip at 10s intervals
+        // is ~8,640 points) — reduce the cap or stream row-by-row if that becomes an
+        // issue under concurrent PDF requests.
         var readingsTask  = _dbRealtime.GetRowsForRange(tripHwId, start, end, 5000);
         var alarmsTask    = _dbAlarmLog.GetByDateRange(tripHwId,  start, end, 2000);
         var settingsTask  = _dbSettings.GetDeviceSettings(tripHwId);
@@ -507,7 +372,6 @@ public class FleetTripsController : ControllerBase
             ? tn?.ToString() ?? ""
             : "";
 
-        // ── Generate PDF ──────────────────────────────────────────────────────
         var doc = new FleetTripReportDocument
         {
             HardwareId = tripHwId,

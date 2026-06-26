@@ -2,15 +2,15 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
+using FleetCore.Context;
+using FleetCore.Fleet;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 
-namespace HIAS_NET_CORE.Fleet.Notifications;
+namespace FleetCore.Fleet.Notifications;
 
 /// <summary>
-/// Routes Fleet alarm notifications through the HIAS notification email queue
+/// Routes Fleet alarm notifications through the parent platform's notification email queue
 /// (notification.notification_email) so that SendEmailQueueJob delivers them
 /// via the platform-configured provider (Brevo / SendGrid / SMPP).
 ///
@@ -18,11 +18,11 @@ namespace HIAS_NET_CORE.Fleet.Notifications;
 ///   - No duplicate SMTP credentials needed in Fleet config
 ///   - Retry on delivery failure is handled automatically by SendEmailQueueJob
 ///   - Unified email audit trail in notification.notification_email
-///   - Multi-provider fallback (Brevo → SendGrid) managed by the HIAS job
+///   - Multi-provider fallback (Brevo → SendGrid) managed by the parent platform's job
 ///   - SendEmailQueueJob is [DisallowConcurrentExecution] so no duplicate sends
 ///
 /// ── Fallback path ─────────────────────────────────────────────────────────────
-/// If the HIAS main database is not reachable (local dev without the full stack),
+/// If the parent platform database is not reachable (local dev without the full stack),
 /// IsConfigured returns false and FleetEmailDispatch falls back to FleetEmailService
 /// for direct SMTP. This means:
 ///   - Production / UAT  → queue path (this class)
@@ -30,7 +30,7 @@ namespace HIAS_NET_CORE.Fleet.Notifications;
 ///
 /// ── Configuration ─────────────────────────────────────────────────────────────
 /// Reads DatabaseSettingsDev (same section used by DatabaseContext) to build the
-/// HIAS main DB connection string. Reads FleetEmailSettings:FromAddress / FromName
+/// parent platform DB connection string. Reads FleetEmailSettings:FromAddress / FromName
 /// for the sender identity. No additional config keys required.
 /// </summary>
 public static class FleetEmailQueue
@@ -60,13 +60,13 @@ public static class FleetEmailQueue
         if (IsConfigured)
             FleetLog.Info("[Fleet-EmailQueue] Queue path active — alarm emails will be delivered by SendEmailQueueJob.");
         else
-            FleetLog.Info("[Fleet-EmailQueue] HIAS DB not configured — alarm emails will fall back to direct SMTP.");
+            FleetLog.Info("[Fleet-EmailQueue] parent platform DB not configured — alarm emails will fall back to direct SMTP.");
     }
 
     // ─── IsConfigured ─────────────────────────────────────────────────────────
 
     /// <summary>
-    /// True when the HIAS DB connection string and sender address are both set.
+    /// True when the parent platform DB connection string and sender address are both set.
     /// FleetEmailDispatch checks this before deciding whether to queue or go direct.
     /// </summary>
     public static bool IsConfigured =>

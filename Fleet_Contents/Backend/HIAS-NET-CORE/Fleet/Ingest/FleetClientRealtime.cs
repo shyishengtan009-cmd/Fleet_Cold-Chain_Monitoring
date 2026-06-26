@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace HIAS_NET_CORE.Fleet.Ingest;
+namespace FleetCore.Fleet.Ingest;
 
 /// <summary>
 /// Partial class — live sensor data retrieval from the TZone cloud API.

@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace HIAS_NET_CORE.Controllers;
+namespace FleetCore.Controllers;
 
 /// <summary>
-/// Stand-in for HIAS's real login system, which doesn't exist in this standalone demo.
+/// Stand-in for the original platform's real login system, which doesn't exist in this standalone demo.
 /// Issues a JWT carrying the claims every Fleet endpoint expects (OrganizationId, RoleCode),
 /// always for the same single demo org. Not real authentication — anyone hitting this
 /// endpoint gets a token. Fine for a portfolio demo, not for anything with real users.

@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse, isAxiosError } fr
 import { TOKEN_KEY } from "@/utils/constants";
 import { getConfig } from "./config";
 
-// Trimmed from the real HIAS api.ts (which wires up ~80 unrelated modules) down to just
+// Trimmed from the original platform's api.ts (which wires up ~80 unrelated modules) down to just
 // the Fleet namespace + a stand-in demo login. Route paths copied verbatim from the real
 // api.constants.ts so they stay in sync with the backend's [Route] attributes.
 
@@ -88,7 +88,7 @@ const ROUTES = {
 };
 
 const api = {
-  // Stand-in for the real HIAS login — see Backend/HIAS-NET-CORE/Controllers/AuthDemoController.cs.
+  // Stand-in for the original platform's login — see Backend/HIAS-NET-CORE/Controllers/AuthDemoController.cs.
   // main.ts calls this once on boot and stores the JWT under TOKEN_KEY.
   auth: {
     demoLogin: () => post({ url: "/auth/demo-login" }) as Promise<{ token: string }>

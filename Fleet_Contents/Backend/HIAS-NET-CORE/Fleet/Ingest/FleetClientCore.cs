@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-namespace HIAS_NET_CORE.Fleet.Ingest;
+namespace FleetCore.Fleet.Ingest;
 
 /// <summary>
 /// HTTP client for the TZone cloud IoT API (https://i-cloud.tzonedigital.com).

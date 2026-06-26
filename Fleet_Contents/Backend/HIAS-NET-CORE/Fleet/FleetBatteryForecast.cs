@@ -1,4 +1,4 @@
-namespace HIAS_NET_CORE.Fleet;
+namespace FleetCore.Fleet;
 
 /// <summary>
 /// Estimates remaining battery life using ordinary least-squares linear regression

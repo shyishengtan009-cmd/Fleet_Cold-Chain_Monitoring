@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace HIAS_NET_CORE.Fleet.Ingest;
+namespace FleetCore.Fleet.Ingest;
 
 /// <summary>
 /// Represents one physical cold-truck sensor device that the ingest service polls.

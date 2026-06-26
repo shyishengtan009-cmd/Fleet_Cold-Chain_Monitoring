@@ -1,4 +1,4 @@
-namespace HIAS_NET_CORE.Models.Fleet;
+namespace FleetCore.Models.Fleet;
 
 /// <summary>
 /// Data models used by the Fleet History API endpoints.

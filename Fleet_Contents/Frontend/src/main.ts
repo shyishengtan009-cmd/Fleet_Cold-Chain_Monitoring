@@ -17,7 +17,7 @@ import "./style/style.sass";
 import "./style/scada.css";
 
 async function bootstrap() {
-  // Stand-in for the real HIAS login (which doesn't exist in this standalone demo) —
+  // Stand-in for the original platform's login (which doesn't exist in this standalone demo) —
   // see Backend/HIAS-NET-CORE/Controllers/AuthDemoController.cs. Every Fleet endpoint
   // reads an OrganizationId/RoleCode claim from this token, so the app can't do
   // anything useful until this resolves.

@@ -1,4 +1,4 @@
-namespace HIAS_NET_CORE.Models.Fleet;
+namespace FleetCore.Models.Fleet;
 
 /// <summary>
 /// Data needed to write one email send attempt into iot.tt19_email_log.

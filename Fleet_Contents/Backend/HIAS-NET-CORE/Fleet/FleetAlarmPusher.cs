@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
-using HIAS_NET_CORE.Fleet.Hubs;
+using FleetCore.Fleet.Hubs;
 
-namespace HIAS_NET_CORE.Fleet;
+namespace FleetCore.Fleet;
 
 /// <summary>
 /// Static façade that pushes Fleet alarm events to connected SignalR clients.

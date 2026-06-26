@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Fleet.Notifications;
-using HIAS_NET_CORE.Models.Fleet;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Fleet.Notifications;
+using FleetCore.Models.Fleet;
+using FleetCore.Repositories;
 using Newtonsoft.Json.Linq;
 
-namespace HIAS_NET_CORE.Fleet.Alarm;
+namespace FleetCore.Fleet.Alarm;
 
 /// <summary>
 /// Detects when a device has been stationary for longer than its configured limit

@@ -4,20 +4,20 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Fleet.Hubs;
-using HIAS_NET_CORE.Fleet.Migrations;
-using HIAS_NET_CORE.Repositories;
+using FleetCore.Context;
+using FleetCore.Fleet;
+using FleetCore.Fleet.Hubs;
+using FleetCore.Fleet.Migrations;
+using FleetCore.Repositories;
 using Microsoft.AspNetCore.SignalR;
-using HIAS_NET_CORE.Fleet.Notifications;
-using HIAS_NET_CORE.Fleet.Scheduling;
-using HIAS_NET_CORE.Fleet.Ingest;
+using FleetCore.Fleet.Notifications;
+using FleetCore.Fleet.Scheduling;
+using FleetCore.Fleet.Ingest;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace HIAS_NET_CORE.Services;
+namespace FleetCore.Services;
 
 /// <summary>
 /// Background service that continuously polls all registered cold-truck sensor devices

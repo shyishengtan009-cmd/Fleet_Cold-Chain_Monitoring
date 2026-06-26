@@ -1,4 +1,4 @@
-namespace HIAS_NET_CORE.Fleet;
+namespace FleetCore.Fleet;
 
 /// <summary>
 /// Centralized limit constants for the Fleet module.

@@ -1,10 +1,10 @@
 using System.Text;
-using HIAS_NET_CORE.Context;
-using HIAS_NET_CORE.Fleet;
-using HIAS_NET_CORE.Fleet.Hubs;
-using HIAS_NET_CORE.Fleet.Migrations;
-using HIAS_NET_CORE.Repositories;
-using HIAS_NET_CORE.Services;
+using FleetCore.Context;
+using FleetCore.Fleet;
+using FleetCore.Fleet.Hubs;
+using FleetCore.Fleet.Migrations;
+using FleetCore.Repositories;
+using FleetCore.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
