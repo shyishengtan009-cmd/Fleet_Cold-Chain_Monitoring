@@ -38,12 +38,19 @@ builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 
-// ─── CORS — allow the Vite dev server, with credentials for SignalR ─────────
+// ─── CORS — allow the Vite dev server plus any deployed frontend origin(s),
+// with credentials for SignalR. Production origins come from the
+// Cors:AllowedOrigins config (comma-separated), set via env var
+// Cors__AllowedOrigins on the host (e.g. Render).
 const string CorsPolicy = "FleetDemoFrontend";
+var allowedOrigins = (builder.Configuration["Cors:AllowedOrigins"] ?? "")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options => options.AddPolicy(CorsPolicy, policy =>
     policy.SetIsOriginAllowed(origin =>
               Uri.TryCreate(origin, UriKind.Absolute, out var u) &&
-              (u.Host == "localhost" || u.Host == "127.0.0.1"))
+              (u.Host == "localhost" || u.Host == "127.0.0.1" ||
+               allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase)))
           .AllowAnyHeader()
           .AllowAnyMethod()
           .AllowCredentials()));
