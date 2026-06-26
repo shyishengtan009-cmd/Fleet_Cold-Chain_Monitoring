@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: fleet_demo_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fleet_demo
+      POSTGRES_USER: fleet_demo
+      POSTGRES_PASSWORD: fleet_demo_local_only
+    ports:
+      - "5432:5432"
+    volumes:
+      - fleet_demo_pg_data:/var/lib/postgresql/data
+
+volumes:
+  fleet_demo_pg_data:

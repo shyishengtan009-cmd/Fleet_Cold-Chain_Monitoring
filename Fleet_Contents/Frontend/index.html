@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Required for several Fleet components (DeviceEditModal.vue, DsLocations.vue, DsTrip.vue,
+         FleetDevicePortal.vue, FleetExportDialog.vue, PortalDeviceList.vue) that use bare Material
+         Icons ligature names (icon="close"/"add"/"delete"/"edit") rather than FontAwesome names.
+         Quasar's iconSet config only remaps Quasar's OWN internal default icons — it does nothing
+         for icon names developers type explicitly. Without this font loaded, those specific icons
+         render as literal text instead of glyphs. -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <title>Fleet Cold-Chain Monitoring</title>
+  </head>
+  <body>
+    <div id="app" style="min-height: 100vh"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/*.user
+appsettings.Development.json
+
+# Internal working notes — full debugging history, references the source company by name.
+# Kept locally, not part of the public portfolio repo.
+CLAUDE.md
+MEMORY/
+README_STAGING_NOTES.md

@@ -1,0 +1,34 @@
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# .NET
+bin/
+obj/
+*.user
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+appsettings.Development.json
+
+# Internal working notes — not part of the public repo
+Fleet_Contents/CLAUDE.md
+Fleet_Contents/MEMORY/
+Fleet_Contents/README_STAGING_NOTES.md

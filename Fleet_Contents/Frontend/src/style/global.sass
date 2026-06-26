@@ -1,0 +1,168 @@
+@use './_variables' as var
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap')
+
+td.table-red
+  background-color: var.$table-red !important
+
+td.table-red-1
+  background-color: var.$table-red-1 !important
+
+td.table-yellow
+  background-color: var.$table-yellow !important
+
+td.table-green
+  background-color: var.$table-green !important
+
+td.table-grey-0
+  background-color: var.$primary-grey-1 !important
+
+td.table-grey-2
+  background-color: var.$primary-grey-3 !important
+
+td.table-grey
+  background-color: var.$primary-grey-1
+
+td.table-white
+  background-color: #fff !important
+
+.bdt-gray
+  border-top: 1px solid #d7d7d7
+
+.gap-xs
+  gap: 4px
+
+.gap-sm
+  gap: 8px
+
+.gap-md
+  gap: 16px
+
+.gap-xl
+  gap: 48px
+
+.bd-b
+  border-bottom: 1px solid #c3c6d4
+
+.flex-row
+  flex-direction: row
+
+.radius-5
+  border-radius: 5px
+
+.cur-pointer
+  cursor: pointer
+
+.q-field
+  max-width: 100%
+
+.customInput.q-field--readonly > div
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.38)
+  background-color: rgba(0, 0, 0, 0.06)
+
+.tableChecklistAuditReport .q-table__bottom--nodata
+  min-height: 48px
+
+.checklistAuditReportBtn  .q-btn-dropdown__arrow-container
+  border-left: 1px solid rgb(161 155 155 / 30%) !important
+
+.inputReportV2 .q-field__control-container
+  display: flex
+  align-items: center
+
+.customSelect
+  .q-field__control
+    background-color: unset
+    padding: 0 !important
+  .q-field__control:before
+    border-bottom: none
+    background-color: unset !important
+  .q-field__control:after
+    height: 0
+  .q-field__append
+    padding-left: 0
+  .q-field__label
+    font-weight: bold
+    font-size: 14px
+    transform: unset !important
+    color: #00000099
+.listOptionSelect
+  max-height: 250px
+.optionChecklist
+  .q-radio__inner
+    display: none
+.q-stepper
+  height: 50px
+  box-shadow: none
+  .q-stepper__header--border
+    border-bottom: none
+  .q-stepper__content
+    display: none
+
+
+.custom-container
+  width: 100%
+  margin: auto
+  max-width: 1200px  // Maximum width
+  margin: 0 auto     // Centers the container horizontally
+  padding: 0 15px    // Adds padding on the left and right
+  box-sizing: border-box  // Ensures padding does not affect total width
+
+  @media (max-width: 1200px)
+    max-width: 100%  // Full width on smaller screens
+    padding: 0 20px  // Adjust padding for smaller screens
+
+  @media (max-width: 768px)
+    padding: 0 10px  // Less padding on medium-sized screens
+
+  @media (max-width: 480px)
+    padding: 0 5px   // Minimal padding on small screens
+
+
+.dark-theme
+  background-color: var.$primary-dark-bg
+  color: var.$primary-dark-font
+
+// applying dark theme for only icon in input field
+.dark-theme-input-icon
+  color: var.$primary-dark-font
+
+// applying dark theme for svg in <img>
+.dark-theme-img-svg
+  .svg-icon
+    color: var.$primary-dark-font
+
+
+//.q-chip__content, .q-chip__content *
+//  overflow: hidden
+//  text-overflow: ellipsis
+//  -webkit-line-clamp: 1
+//  -webkit-box-orient: vertical
+//  display: inline-block
+//  word-break: break-all
+
+.q-chip__content *
+  display: -webkit-box
+
+.export-button
+  color: var(--q-secondary)
+  border: 1px solid var(--q-secondary)
+  background: transparent
+  &:hover
+    background: var(--q-secondary)
+    color: white
+  .q-icon
+    margin-right: 8px
+    font-size: 13px
+  .q-btn__content
+    font-size: 14px
+    font-weight: 500
+    line-height: 16px
+
+:root
+  --spinner-size-default: 40px
+  --spinner-color-default: grey
+  --inner-loading-background-color: rgba(255, 255, 255, 0.6)
+
+.q-inner-loading
+  z-index: 10

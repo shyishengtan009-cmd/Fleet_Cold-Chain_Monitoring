@@ -1,0 +1,90 @@
+/* SCADA Dashboard Styles */
+.scada-dashboard * {
+    box-sizing: border-box;
+}
+
+/* Color Palette - Light Theme */
+:root {
+    --scada-bg: #f5f7fa;
+    --scada-panel: #ffffff;
+    --scada-border: #e0e4ed;
+    --scada-accent: #1976d2;
+    --scada-success: #21ba45;
+    --scada-warning: #f2a20a;
+    --scada-danger: #c10015;
+    --scada-text: #1a1a2e;
+    --scada-text-secondary: #6b7280;
+}
+
+/* Card / Panel */
+.scada-card {
+    background: #ffffff;
+    border: 1px solid var(--scada-border);
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* Grid Pattern for canvas */
+.grid-pattern {
+    background-color: #f8f9fc;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+/* Toolbar item hover */
+.scada-toolbar-item {
+    background: #ffffff;
+    border: 1px solid var(--scada-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+    .scada-toolbar-item:hover {
+        border-color: var(--scada-accent);
+        box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
+    }
+
+/* Status indicator */
+.scada-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--scada-success);
+    display: inline-block;
+}
+
+/* Animations */
+@keyframes pulse-dot {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(1.2);
+    }
+}
+
+.animate-pulse-dot {
+    animation: pulse-dot 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateY(100%);
+    }
+
+    100% {
+        transform: translateY(-100%);
+    }
+}
+
+/* Level fill shimmer */
+.level-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, transparent, rgba(255,255,255,0.25), transparent);
+    animation: shimmer 2s infinite;
+}

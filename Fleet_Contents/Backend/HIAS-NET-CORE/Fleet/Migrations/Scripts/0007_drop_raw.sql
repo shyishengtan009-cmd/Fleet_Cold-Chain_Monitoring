@@ -1,0 +1,1 @@
+ALTER TABLE iot.tt19_data DROP COLUMN IF EXISTS raw;
