@@ -241,7 +241,7 @@ function formatTs(raw: string): string {
         @mouseover="mouseOverId = slotProps.row.id"
         @mouseleave="mouseOverId = ''"
       >
-        <div class="text-caption">{{ formatTs(slotProps.row.ts) }}</div>
+        <div>{{ formatTs(slotProps.row.ts) }}</div>
       </q-td>
     </template>
 
@@ -414,5 +414,5 @@ function formatTs(raw: string): string {
     color: $primary-black !important
 
 .sensor-cell-gap
-  gap: 6px
+  gap: 8px
 </style>

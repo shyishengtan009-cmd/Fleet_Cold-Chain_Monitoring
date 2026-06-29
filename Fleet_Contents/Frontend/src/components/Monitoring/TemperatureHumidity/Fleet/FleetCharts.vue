@@ -442,7 +442,7 @@ const chartOptionsVibration = computed(() => {
 
 .chartTitle
   font-weight: 700
-  font-size: 11px
+  font-size: $font-size-xs
   color: $primary-black
   margin-bottom: 2px
   flex-shrink: 0
@@ -459,5 +459,5 @@ const chartOptionsVibration = computed(() => {
   justify-content: center
   height: 100%
   color: $secondary-grey-1
-  font-size: 13px
+  font-size: $font-size-sm
 </style>

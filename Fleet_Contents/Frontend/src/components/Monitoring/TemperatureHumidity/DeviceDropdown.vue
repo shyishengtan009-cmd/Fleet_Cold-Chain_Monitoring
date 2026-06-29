@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import { STATUS_ALARM, STATUS_OK, STATUS_WARN } from "@/style/statusColors";
 
 const selectRef = ref<{ hidePopup: () => void } | null>(null);
 
@@ -48,9 +49,9 @@ function label(d: DeviceTab | null | undefined): string {
 }
 
 function dotColor(status: string | undefined): string {
-  if (status === "OK") return "#43a047";
-  if (status === "WARN") return "#fb8c00";
-  if (status === "OFFLINE") return "#e53935";
+  if (status === "OK") return STATUS_OK;
+  if (status === "WARN") return STATUS_WARN;
+  if (status === "OFFLINE") return STATUS_ALARM;
   return "#bdbdbd";
 }
 
