@@ -360,7 +360,10 @@ async function onDeviceSelected(hw: string | null) {
   try {
     await loadHistoryMeta(hw);
     if (metaMinTs.value && metaMaxTs.value) {
-      startUtc.value = isoToDisplayDt(metaMaxTs.value);
+      // Default to the device's full available history, not just the latest day —
+      // otherwise a first-time viewer never sees the backfilled history (migration
+      // 0017) without knowing to click "Full Range" themselves.
+      startUtc.value = isoToDisplayDt(metaMinTs.value);
       endUtc.value = isoToDisplayDt(metaMaxTs.value);
     } else {
       const { start, end } = todayMytRange();
