@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { tripProgressState } from "./useTripProgressState";
+import { STATUS_ALARM, STATUS_OK, STATUS_WARN } from "@/style/statusColors";
 
 const props = defineProps<{ trip: any }>();
 
@@ -217,7 +218,7 @@ const pctLabel = computed(() => `${Math.round(progress.value * 100)}%`);
           class="text-caption text-weight-medium"
           :style="{
             fontSize: '10px',
-            color: progress >= 1 ? '#d32f2f' : progress >= 0.75 ? '#f57c00' : '#2e7d32'
+            color: progress >= 1 ? STATUS_ALARM : progress >= 0.75 ? STATUS_WARN : STATUS_OK
           }"
         >
           {{ remainingLabel }}
@@ -272,7 +273,7 @@ const pctLabel = computed(() => `${Math.round(progress.value * 100)}%`);
           class="pct-label"
           :style="{
             left: truckLeft,
-            color: progress >= 1 ? '#d32f2f' : progress >= 0.75 ? '#f57c00' : '#2e7d32'
+            color: progress >= 1 ? STATUS_ALARM : progress >= 0.75 ? STATUS_WARN : STATUS_OK
           }"
         >
           {{ pctLabel }}

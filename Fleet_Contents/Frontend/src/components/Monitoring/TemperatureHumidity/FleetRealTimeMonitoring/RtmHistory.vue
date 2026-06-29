@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AlarmThresholds } from "./useRtmSettings";
 import { useRowHighlight } from "@/helpers/rowHighlight";
+import { STATUS_ALARM, STATUS_INFO, STATUS_WARN } from "@/style/statusColors";
 
 const props = defineProps<{
   historyLoading: boolean;
@@ -17,9 +18,9 @@ function tempColor(v: number | null): string {
   const { temp_min_c, temp_max_c } = props.thresholds;
   const range = (temp_max_c ?? 40) - (temp_min_c ?? 0);
   const warnAt = (temp_max_c ?? 40) - range * 0.2;
-  if (temp_max_c != null && v >= temp_max_c) return "#d32f2f";
-  if (temp_min_c != null && v <= temp_min_c) return "#1565c0";
-  if (temp_max_c != null && v >= warnAt) return "#f57c00";
+  if (temp_max_c != null && v >= temp_max_c) return STATUS_ALARM;
+  if (temp_min_c != null && v <= temp_min_c) return STATUS_INFO;
+  if (temp_max_c != null && v >= warnAt) return STATUS_WARN;
   return "#1976d2";
 }
 </script>

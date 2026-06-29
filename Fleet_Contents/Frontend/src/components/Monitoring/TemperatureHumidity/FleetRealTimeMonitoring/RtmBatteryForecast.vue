@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import api from "@/helpers/api";
+import { STATUS_ALARM, STATUS_INFO, STATUS_OK, STATUS_WARN } from "@/style/statusColors";
 
 const props = defineProps<{ hardwareId: string }>();
 
@@ -44,10 +45,10 @@ function fmtHours(h: number | null): string {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  Charging: "#2e7d32",
-  Stable: "#1565c0",
-  Discharging: "#e65100",
-  Critical: "#d32f2f"
+  Charging: STATUS_OK,
+  Stable: STATUS_INFO,
+  Discharging: STATUS_WARN,
+  Critical: STATUS_ALARM
 };
 </script>
 
@@ -73,7 +74,7 @@ const STATUS_COLOR: Record<string, string> = {
         <div class="text-caption text-grey-6">Slope</div>
         <div
           :class="$style.fcVal"
-          :style="{ color: forecast.slopePerHour < -0.1 ? '#d32f2f' : '#2e7d32' }"
+          :style="{ color: forecast.slopePerHour < -0.1 ? STATUS_ALARM : STATUS_OK }"
         >
           {{ forecast.slopePerHour >= 0 ? "+" : "" }}{{ forecast.slopePerHour.toFixed(2) }} %/h
         </div>
@@ -109,7 +110,7 @@ const STATUS_COLOR: Record<string, string> = {
   min-width: 120px
 
 .fcVal
-  font-size: 15px
+  font-size: $font-size-md
   font-weight: 700
   margin-top: 2px
   font-variant-numeric: tabular-nums

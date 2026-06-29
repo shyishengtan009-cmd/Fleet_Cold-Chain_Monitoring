@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import api from "@/helpers/api";
+import { STATUS_ALARM, STATUS_OK, STATUS_WARN } from "@/style/statusColors";
 
 const props = defineProps<{ hardwareId: string | null }>();
 
@@ -172,7 +173,7 @@ function fmtField(f: string): string {
           <q-td class="text-center">
             <span
               class="text-weight-bold"
-              :style="{ color: row.alarmType === 'ALARM' ? '#c62828' : '#e65100' }"
+              :style="{ color: row.alarmType === 'ALARM' ? STATUS_ALARM : STATUS_WARN }"
             >
               {{ row.breachCount }}
             </span>
@@ -215,7 +216,7 @@ function fmtField(f: string): string {
         >
           <q-icon name="fa-solid fa-shield-halved" color="positive" size="22px" />
         </div>
-        <div class="text-weight-bold" style="font-size: 14px; color: #2e7d32">All clear</div>
+        <div class="text-weight-bold" :style="{ color: STATUS_OK }">All clear</div>
         <div class="text-caption text-grey-6" style="text-align: center; max-width: 260px">
           No temperature or condition breaches recorded in the last {{ days }} days.
         </div>

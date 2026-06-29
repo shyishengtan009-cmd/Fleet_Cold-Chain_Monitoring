@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { connectivityBadge } from "../Fleet/useFleetConnectivityStatus";
+import { STATUS_ALARM, STATUS_INFO, STATUS_WARN } from "@/style/statusColors";
 
 const selectRef = ref<{ hidePopup: () => void } | null>(null);
 function onScroll() { selectRef.value?.hidePopup(); }
@@ -33,9 +34,9 @@ function tempCellColor(v: number | null): string {
   const max = t.temp_max_c ?? null;
   const range = (max ?? 40) - (min ?? 0);
   const warnAt = (max ?? 40) - range * 0.2;
-  if (max != null && v >= max) return "#d32f2f";
-  if (min != null && v <= min) return "#1565c0";
-  if (max != null && v >= warnAt) return "#f57c00";
+  if (max != null && v >= max) return STATUS_ALARM;
+  if (min != null && v <= min) return STATUS_INFO;
+  if (max != null && v >= warnAt) return STATUS_WARN;
   return "#1976d2";
 }
 </script>

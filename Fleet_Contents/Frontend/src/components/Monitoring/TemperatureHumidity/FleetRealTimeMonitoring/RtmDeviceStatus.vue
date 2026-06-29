@@ -56,13 +56,13 @@ const statusColor = computed(() => {
     <q-card-section class="headerColor text-weight-bold">
       <div class="row items-center gap-sm">
         <q-icon name="fa-solid fa-truck" size="18px" color="primary" />
-        <span style="font-size: 15px">
+        <span class="device-title">
           {{ props.selectedItem.truckName ?? "Unassigned" }}
-          <span class="text-grey-6 text-weight-regular q-ml-xs" style="font-size: 12px">
+          <span class="text-grey-6 text-weight-regular q-ml-xs device-subtitle">
             {{ props.selectedItem.hardwareId }}
           </span>
         </span>
-        <q-chip dense square :color="statusColor" text-color="white" style="font-size: 11px">
+        <q-chip dense square :color="statusColor" text-color="white" class="status-chip">
           {{ props.selectedItem.status }}
         </q-chip>
         <q-space />
@@ -92,10 +92,9 @@ const statusColor = computed(() => {
       dense
       no-caps
       align="left"
-      class="q-px-md"
+      class="q-px-md rtm-tabs"
       active-color="primary"
       indicator-color="primary"
-      style="border-bottom: 1px solid #e0e0e0"
     >
       <q-tab name="all" label="Shipment Info" />
       <q-tab name="graph" label="Graph" />
@@ -158,3 +157,19 @@ const statusColor = computed(() => {
     </q-tab-panels>
   </q-card>
 </template>
+
+<style lang="sass" scoped>
+@import '../../../../style/_variables'
+
+.device-title
+  font-size: $font-size-md
+
+.device-subtitle
+  font-size: $font-size-sm
+
+.status-chip
+  font-size: $font-size-xs
+
+.rtm-tabs
+  border-bottom: 1px solid $secondary-grey-2
+</style>

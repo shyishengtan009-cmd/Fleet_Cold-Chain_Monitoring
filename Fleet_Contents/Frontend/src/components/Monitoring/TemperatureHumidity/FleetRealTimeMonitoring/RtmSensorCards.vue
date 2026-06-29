@@ -2,6 +2,7 @@
 import type { AlarmThresholds } from "./useRtmSettings";
 
 import { computed } from "vue";
+import { STATUS_ALARM, STATUS_OK, STATUS_WARN } from "@/style/statusColors";
 
 const props = defineProps<{
   selectedItem: any;
@@ -21,9 +22,9 @@ const latestRssi = computed<number | null>(() => {
 });
 
 // ── Colour constants matching the pre-established alarm palette ───────────────
-const C_OK = "#2e7d32"; // green  — within configured threshold
-const C_WARN = "#e65100"; // orange — threshold breached (humidity, light)
-const C_ALARM = "#d32f2f"; // red    — threshold breached (temp, battery)
+const C_OK = STATUS_OK;
+const C_WARN = STATUS_WARN;
+const C_ALARM = STATUS_ALARM;
 const C_NEUTRAL = "#1a1a1a"; // dark   — no threshold configured, can't judge
 
 function tempColor(): string {
