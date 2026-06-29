@@ -13,6 +13,13 @@
     <title>Fleet Cold-Chain Monitoring</title>
   </head>
   <body>
+    <!-- Plain, pre-Vue boot message. The app awaits a demo-login call to the backend before
+         mounting (see main.ts), and the free-tier host can take ~30-50s to wake from idle —
+         without this, that wait would look like a blank, broken page. main.ts removes this
+         element right before mounting the real app. -->
+    <div id="boot-loading" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: system-ui, sans-serif; color: #555;">
+      Waking up the demo server… this can take up to 50 seconds if it's been idle.
+    </div>
     <div id="app" style="min-height: 100vh"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

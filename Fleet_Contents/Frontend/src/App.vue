@@ -5,12 +5,31 @@ import AppFooter from "@/components/AppFooter.vue";
 import Sidebar from "@/components/Sidebar.vue";
 
 const showDrawer = ref(true);
+
+// Free-tier hosting (Render) spins the backend down after inactivity, so the first
+// request after a while can take ~30-50s. Shown once per browser session so it doesn't
+// nag returning visitors who already know.
+const showColdStartNotice = ref(sessionStorage.getItem("coldStartNoticeDismissed") !== "1");
+function dismissColdStartNotice() {
+  sessionStorage.setItem("coldStartNoticeDismissed", "1");
+  showColdStartNotice.value = false;
+}
 </script>
 
 <template>
   <q-layout view="hHh LpR fFf" class="bg-white">
     <q-header bordered class="bg-white text-dark">
       <AppHeader v-model="showDrawer" />
+      <q-banner v-if="showColdStartNotice" dense class="bg-blue-1 text-dark">
+        <template #avatar>
+          <q-icon name="fa-solid fa-circle-info" color="primary" />
+        </template>
+        This demo runs on a free-tier host — if it's been idle, the first request may take
+        30-50 seconds to wake up.
+        <template #action>
+          <q-btn flat dense label="Dismiss" color="primary" @click="dismissColdStartNotice" />
+        </template>
+      </q-banner>
     </q-header>
 
     <q-drawer v-model="showDrawer" show-if-above bordered :width="300">

@@ -26,12 +26,12 @@ only where to find/regenerate them.
    ```
    Host=...;Database=...;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true;
    ```
-5. Create `Fleet_Contents/Backend/HIAS-NET-CORE/appsettings.Development.json` (gitignored,
+5. Create `Fleet_Contents/Backend/ColdChainFleet/appsettings.Development.json` (gitignored,
    never committed) with that connection string:
    ```json
    { "Database": { "ConnectionString": "Host=...;Database=...;Username=...;Password=...;SSL Mode=Require;Trust Server Certificate=true;" } }
    ```
-6. Run the backend: `cd Fleet_Contents/Backend/HIAS-NET-CORE && dotnet run`. First run applies
+6. Run the backend: `cd Fleet_Contents/Backend/ColdChainFleet && dotnet run`. First run applies
    all schema migrations automatically and starts `FleetSimService` generating data. Listens
    on `http://localhost:5276`.
 7. Run the frontend: `cd Fleet_Contents/Frontend && npm install && npm run dev`. Open the
@@ -43,7 +43,7 @@ Both Render services auto-deploy on every push to `main`. There's no separate "d
 just commit and push.
 
 **Before pushing anything risky**: verify both builds succeed locally first —
-`dotnet build` in `Fleet_Contents/Backend/HIAS-NET-CORE` and `npm run build` in
+`dotnet build` in `Fleet_Contents/Backend/ColdChainFleet` and `npm run build` in
 `Fleet_Contents/Frontend`. If a build fails on Render, the previous working deploy stays live
 (safe). If it builds but has a runtime bug, the live site breaks immediately on deploy
 (not safe) — so test locally first, and for larger changes, work on a separate branch and
