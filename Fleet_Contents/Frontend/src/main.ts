@@ -18,7 +18,7 @@ import "./style/scada.css";
 
 async function bootstrap() {
   // Stand-in for the original platform's login (which doesn't exist in this standalone demo) —
-  // see Backend/HIAS-NET-CORE/Controllers/AuthDemoController.cs. Every Fleet endpoint
+  // see Backend/ColdChainFleet/Controllers/AuthDemoController.cs. Every Fleet endpoint
   // reads an OrganizationId/RoleCode claim from this token, so the app can't do
   // anything useful until this resolves.
   try {
@@ -35,6 +35,7 @@ async function bootstrap() {
     iconSet,
     plugins: { Dialog, Notify, Loading }
   });
+  document.getElementById("boot-loading")?.remove();
   app.mount("#app");
 }
 

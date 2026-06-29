@@ -88,7 +88,7 @@ const ROUTES = {
 };
 
 const api = {
-  // Stand-in for the original platform's login — see Backend/HIAS-NET-CORE/Controllers/AuthDemoController.cs.
+  // Stand-in for the original platform's login — see Backend/ColdChainFleet/Controllers/AuthDemoController.cs.
   // main.ts calls this once on boot and stores the JWT under TOKEN_KEY.
   auth: {
     demoLogin: () => post({ url: "/auth/demo-login" }) as Promise<{ token: string }>

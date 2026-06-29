@@ -81,7 +81,7 @@ its connection string.
 
 **2. Backend**
 ```bash
-cd Fleet_Contents/Backend/HIAS-NET-CORE
+cd Fleet_Contents/Backend/ColdChainFleet
 ```
 Create `appsettings.Development.json` (gitignored, never committed) with:
 ```json
