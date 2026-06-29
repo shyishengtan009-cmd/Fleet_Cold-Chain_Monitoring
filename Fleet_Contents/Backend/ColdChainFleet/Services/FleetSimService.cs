@@ -68,6 +68,13 @@ public class FleetSimService : BackgroundService
         FleetEmailQueue.Configure(config, db);
     }
 
+    // FleetIngestService (the real-hardware ingest path, not registered in this demo)
+    // normally calls FleetDbCoreRepository.PurgeOldData() once an hour. Since FleetSimService
+    // stands in for it here, that call has to happen here too — otherwise sensor data
+    // accumulates forever with no archiving/downsampling/cleanup at all.
+    private static readonly TimeSpan PurgeInterval = TimeSpan.FromHours(1);
+    private DateTime _lastPurge = DateTime.MinValue;
+
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         await SeedDevicesAsync(ct);
@@ -85,12 +92,31 @@ public class FleetSimService : BackgroundService
             {
                 await Task.Delay(TimeSpan.FromSeconds(_intervalSeconds), ct);
                 await GenerateReadingsAsync(ct);
+                await PurgeOldDataIfDueAsync(ct);
             }
             catch (OperationCanceledException) { break; }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "FleetSimService: error generating readings.");
             }
+        }
+    }
+
+    private async Task PurgeOldDataIfDueAsync(CancellationToken ct)
+    {
+        if (DateTime.UtcNow - _lastPurge < PurgeInterval) return;
+        _lastPurge = DateTime.UtcNow;
+
+        try
+        {
+            using var scope = _sp.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+            await FleetDbCoreRepository.PurgeOldData(db);
+            _logger.LogInformation("FleetSimService: ran PurgeOldData (archive/downsample/cleanup).");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "FleetSimService: PurgeOldData failed.");
         }
     }
 

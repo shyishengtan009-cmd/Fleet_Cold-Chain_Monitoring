@@ -249,9 +249,15 @@ CREATE INDEX IF NOT EXISTS idx_trip_points_trip_ts
 -- Ensure next 3 monthly archive partitions exist before archiving
 DO $$ BEGIN PERFORM iot.ensure_archive_partitions(); EXCEPTION WHEN undefined_function THEN NULL; END $$;
 
--- Archive sensor readings older than 30 days into iot.tt19_data_archive (partitioned).
+-- Archive sensor readings older than 15 days into iot.tt19_data_archive (partitioned).
 -- Runs only when migration 0011 has been applied; silent no-op otherwise.
-DO $$ BEGIN PERFORM iot.archive_old_sensor_data(30); EXCEPTION WHEN undefined_function THEN NULL; END $$;
+-- (15 days, not the original 30 — this demo runs on a free-tier database with a
+-- 0.5GB storage cap; see migration 0018 for why density needs to shrink sooner.)
+DO $$ BEGIN PERFORM iot.archive_old_sensor_data(15); EXCEPTION WHEN undefined_function THEN NULL; END $$;
+
+-- Downsample archived data older than 15 days to at most 42 rows/device/day,
+-- evenly spread across the day. Runs only when migration 0018 has been applied.
+DO $$ BEGIN PERFORM iot.downsample_archive(15, 42); EXCEPTION WHEN undefined_function THEN NULL; END $$;
 
 -- Safety net: delete any sensor readings older than 90 days not yet archived
 DELETE FROM iot.tt19_data
