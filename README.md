@@ -10,6 +10,7 @@ login required, opens straight into the dashboard. First load may take ~30-60s i
 been idle (free-tier hosting spins down after inactivity).
 
 ![Fleet Dashboard](Fleet_Contents/docs/screenshot-dashboard.png)
+![Real-Time Monitoring](Fleet_Contents/docs/screenshot-realtime.png)
 
 ## What this is
 
