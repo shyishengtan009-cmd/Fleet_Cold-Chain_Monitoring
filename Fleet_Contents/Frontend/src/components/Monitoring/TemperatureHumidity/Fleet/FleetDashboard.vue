@@ -91,11 +91,26 @@ const startUtcDate = computed(() => startUtc.value.slice(0, 10));
 const endUtcDate = computed(() => endUtc.value.slice(0, 10));
 
 // Discoverability hint: how much history exists beyond today's default view,
-// so a first-time viewer knows "Full Range" is worth clicking.
+// so a first-time viewer knows "Full Range" is worth clicking. Only relevant
+// while the currently-displayed range actually IS just today — once "Full
+// Range" (or a manual query) changes it, the hint would be misleading.
 const fullRangeDays = computed(() => {
   if (!metaMinTs.value || !metaMaxTs.value) return 0;
   const ms = new Date(metaMaxTs.value).getTime() - new Date(metaMinTs.value).getTime();
   return Math.max(1, Math.ceil(ms / (24 * 3_600_000)));
+});
+
+const isShowingToday = computed(() => {
+  const { start, end } = todayMytRange();
+  return startUtc.value === isoToDisplayDt(start) && endUtc.value === isoToDisplayDt(end);
+});
+
+const isShowingFullRange = computed(() => {
+  if (!metaMinTs.value || !metaMaxTs.value) return false;
+  return (
+    startUtc.value === isoToDisplayDt(metaMinTs.value) &&
+    endUtc.value === isoToDisplayDt(metaMaxTs.value)
+  );
 });
 
 function setStartDate(v: string) {
@@ -561,8 +576,11 @@ onUnmounted(() => {
               >
                 Full Range
               </q-btn>
-              <span v-if="fullRangeDays > 1" class="text-caption text-grey-6">
+              <span v-if="fullRangeDays > 1 && isShowingToday" class="text-caption text-grey-6">
                 Showing today — {{ fullRangeDays }} days of history available
+              </span>
+              <span v-else-if="fullRangeDays > 1 && isShowingFullRange" class="text-caption text-grey-6">
+                Showing full range ({{ fullRangeDays }} days)
               </span>
               <q-space />
               <div class="row items-center gap-sm">
