@@ -11,7 +11,12 @@ function val(v: any): string {
 
 <template>
   <q-card flat>
-    <q-card-section class="headerColor text-weight-bold">Shipment Information</q-card-section>
+    <q-card-section
+      class="headerColor text-weight-bold"
+      style="font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: #515151"
+    >
+      Shipment Information
+    </q-card-section>
     <q-separator />
     <q-card-section>
       <div :class="$style.shipmentGrid">

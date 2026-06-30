@@ -44,11 +44,11 @@ const router = useRouter();
     <q-item
       v-for="icon in topLevelIcons"
       :key="icon"
-      class="text-grey-8 decoy-row"
-      style="cursor: default"
+      class="decoy-row"
+      style="cursor: default; min-height: 44px"
     >
-      <q-item-section avatar>
-        <q-icon :name="icon" />
+      <q-item-section avatar class="nav-avatar">
+        <q-icon :name="icon" class="decoy-icon" size="15px" />
       </q-item-section>
     </q-item>
 
@@ -56,8 +56,8 @@ const router = useRouter();
       v-model="monitoringExpanded"
       icon="fa-solid fa-eye"
       label="Monitoring"
-      header-style="font-weight: 600"
-      header-class="text-primary"
+      header-style="font-weight: 600; font-size: 12px; min-height: 44px"
+      header-class="text-primary decoy-row"
       default-opened
     >
       <q-item
@@ -65,23 +65,24 @@ const router = useRouter();
         :key="item.route"
         clickable
         :active="route.path === item.route"
-        active-class="text-primary"
-        :style="`padding-left: 56px; ${route.path === item.route ? 'background-color: rgba(229,243,234,1)' : ''}`"
+        active-class="text-primary fleet-item-active"
+        class="fleet-item"
+        :style="route.path === item.route ? 'background-color: rgba(229,243,234,1)' : ''"
         @click="router.push(item.route)"
       >
-        <q-item-section avatar><q-icon :name="item.icon" size="xs" /></q-item-section>
-        <q-item-section>{{ item.label }}</q-item-section>
+        <q-item-section avatar class="nav-avatar"><q-icon :name="item.icon" size="15px" /></q-item-section>
+        <q-item-section class="fleet-item-label">{{ item.label }}</q-item-section>
       </q-item>
     </q-expansion-item>
 
     <q-item
       v-for="icon in bottomLevelIcons"
       :key="icon"
-      class="text-grey-8 decoy-row"
-      style="cursor: default"
+      class="decoy-row"
+      style="cursor: default; min-height: 44px"
     >
-      <q-item-section avatar>
-        <q-icon :name="icon" />
+      <q-item-section avatar class="nav-avatar">
+        <q-icon :name="icon" class="decoy-icon" size="15px" />
       </q-item-section>
     </q-item>
   </q-list>
@@ -90,6 +91,22 @@ const router = useRouter();
 <style lang="sass" scoped>
 @import '../style/_variables'
 
-.decoy-row
-  border-bottom: 1px solid $primary-black
+.decoy-row, :deep(.decoy-row)
+  border-bottom: 1px solid #f0f0f0
+
+.decoy-icon
+  color: $secondary-grey-1
+
+.nav-avatar
+  min-width: 44px
+
+.fleet-item
+  min-height: 38px
+
+.fleet-item-label
+  font-size: 12px
+  font-weight: 500
+
+.fleet-item-active .fleet-item-label
+  font-weight: 600
 </style>

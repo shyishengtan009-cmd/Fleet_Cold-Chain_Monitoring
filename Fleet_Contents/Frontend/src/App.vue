@@ -32,7 +32,7 @@ function dismissColdStartNotice() {
       </q-banner>
     </q-header>
 
-    <q-drawer v-model="showDrawer" show-if-above bordered :width="300">
+    <q-drawer v-model="showDrawer" show-if-above bordered :width="220">
       <Sidebar />
     </q-drawer>
 

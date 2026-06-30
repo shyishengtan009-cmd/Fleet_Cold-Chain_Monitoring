@@ -237,22 +237,29 @@ function fmtField(f: string): string {
 
 .sectionHeader
   width: 100%
-  font-size: 14px
+  font-size: 12px
+  font-weight: 700
+  letter-spacing: 0.4px
   text-transform: uppercase
-  color: $primary-black
+  color: #515151
+  background-image: linear-gradient(0deg, $secondary-grey-2 0%, $white 100%)
   border-top: 1px solid $secondary-grey-2
+  border-bottom: 1px solid #c3c6d4
+  padding: 8px 12px !important
 
 .styledTable
   :global(thead tr th)
     font-weight: 700 !important
-    font-size: 14px !important
-    color: $primary-black !important
-    text-transform: capitalize !important
+    font-size: 11px !important
+    letter-spacing: 0.3px !important
+    color: #515151 !important
+    text-transform: uppercase !important
     background-image: linear-gradient(0deg, $secondary-grey-2 0%, $white 100%) !important
     box-sizing: border-box !important
-    border-top: 1px solid $secondary-grey-2 !important
+    padding: 7px 10px !important
+    border-bottom: 2px solid $secondary-grey-2 !important
   :global(tbody tr td)
-    padding: 8px !important
-    font-size: 14px !important
-    color: $primary-black !important
+    padding: 7px 10px !important
+    font-size: 12px !important
+    color: #515151 !important
 </style>
