@@ -359,17 +359,11 @@ async function onDeviceSelected(hw: string | null) {
   startAlarmNotifier(hw);
   try {
     await loadHistoryMeta(hw);
-    if (metaMinTs.value && metaMaxTs.value) {
-      // Default to the device's full available history, not just the latest day —
-      // otherwise a first-time viewer never sees the backfilled history (migration
-      // 0017) without knowing to click "Full Range" themselves.
-      startUtc.value = isoToDisplayDt(metaMinTs.value);
-      endUtc.value = isoToDisplayDt(metaMaxTs.value);
-    } else {
-      const { start, end } = todayMytRange();
-      startUtc.value = isoToDisplayDt(start);
-      endUtc.value = isoToDisplayDt(end);
-    }
+    // Default to today's data — a focused, readable live view. The full backfilled
+    // history (migration 0017) is one click away via "Full Range" below.
+    const { start, end } = todayMytRange();
+    startUtc.value = isoToDisplayDt(start);
+    endUtc.value = isoToDisplayDt(end);
     await queryHistory();
   } catch (e: unknown) {
     historyError.value = e instanceof Error ? e.message : String(e);
