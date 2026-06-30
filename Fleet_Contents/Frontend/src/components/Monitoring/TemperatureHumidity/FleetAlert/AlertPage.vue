@@ -426,8 +426,13 @@ onUnmounted(() => {
 
 .sectionHeader
   width: 100%
-  font-size: 14px
+  font-size: 12px
+  font-weight: 700
+  letter-spacing: 0.4px
   text-transform: uppercase
-  color: $primary-black
+  color: #515151
+  background-image: linear-gradient(0deg, $secondary-grey-2 0%, $white 100%)
   border-top: 1px solid $secondary-grey-2
+  border-bottom: 1px solid #c3c6d4
+  padding: 8px 12px !important
 </style>

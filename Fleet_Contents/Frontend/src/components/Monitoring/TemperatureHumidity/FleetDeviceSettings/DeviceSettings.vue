@@ -425,7 +425,7 @@ onMounted(loadDeviceList);
 
           <div style="width: 100%">
             <q-card flat>
-              <q-card-section class="headerColor text-weight-bold">
+              <q-card-section class="headerColor text-weight-bold" :class="$style.panelHeader">
                 <q-icon name="fa-solid fa-bell" size="14px" class="q-mr-xs" />
                 Alarm Settings
               </q-card-section>
@@ -438,7 +438,7 @@ onMounted(loadDeviceList);
             <q-separator />
 
             <q-card flat>
-              <q-card-section class="headerColor text-weight-bold">
+              <q-card-section class="headerColor text-weight-bold" :class="$style.panelHeader">
                 <q-icon name="fa-solid fa-bell" size="14px" class="q-mr-xs" />
                 Notifications
               </q-card-section>
@@ -465,7 +465,7 @@ onMounted(loadDeviceList);
             <q-separator />
 
             <q-card flat>
-              <q-card-section class="headerColor text-weight-bold">
+              <q-card-section class="headerColor text-weight-bold" :class="$style.panelHeader">
                 <q-icon name="fa-solid fa-truck" size="14px" class="q-mr-xs" />
                 Trip Settings
               </q-card-section>
@@ -483,7 +483,7 @@ onMounted(loadDeviceList);
             <q-separator />
 
             <q-card flat>
-              <q-card-section class="headerColor text-weight-bold">
+              <q-card-section class="headerColor text-weight-bold" :class="$style.panelHeader">
                 <q-icon name="fa-solid fa-location-dot" size="14px" class="q-mr-xs" />
                 Location Library
               </q-card-section>
@@ -529,17 +529,26 @@ onMounted(loadDeviceList);
 <style lang="sass" module>
 @import '../../../../style/_variables'
 
+.panelHeader
+  font-size: 12px !important
+  letter-spacing: 0.4px
+  text-transform: uppercase
+  color: #515151 !important
+  padding: 8px 12px !important
+
 .styledTable
   :global(thead tr th)
     font-weight: 700 !important
-    font-size: 14px !important
-    color: $primary-black !important
-    text-transform: capitalize !important
+    font-size: 11px !important
+    letter-spacing: 0.3px !important
+    color: #515151 !important
+    text-transform: uppercase !important
     background-image: linear-gradient(0deg, $secondary-grey-2 0%, $white 100%) !important
     box-sizing: border-box !important
-    border-top: 1px solid $secondary-grey-2 !important
+    padding: 7px 10px !important
+    border-bottom: 2px solid $secondary-grey-2 !important
   :global(tbody tr td)
-    padding: 8px !important
-    font-size: 14px !important
-    color: $primary-black !important
+    padding: 7px 10px !important
+    font-size: 12px !important
+    color: #515151 !important
 </style>

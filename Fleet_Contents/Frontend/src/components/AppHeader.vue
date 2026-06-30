@@ -17,39 +17,41 @@ const userAvatarSVG = `<svg width="34px" height="34px" viewBox="0 0 16 16" xmlns
 </script>
 
 <template>
-  <div class="row items-center justify-between" style="padding: 0 12px; min-height: 60px">
+  <div class="row items-center justify-between" style="padding: 0 12px 0 0; height: 50px">
     <div class="row no-wrap items-center">
       <q-btn
         flat
         round
-        dense
+        :class="$style.hamburgerBtn"
         icon="fa-solid fa-bars"
         @click="emit('update:modelValue', !modelValue)"
       />
       <div class="row items-center q-ml-sm cursor-pointer">
-        <svg width="30" height="30" viewBox="0 0 30 30" class="q-mr-sm">
-          <rect x="0" y="0" width="30" height="9" rx="2" fill="#0ea5e9" />
-          <rect x="0" y="10.5" width="30" height="9" rx="2" fill="#16a34a" />
-          <rect x="0" y="21" width="30" height="9" rx="2" fill="#1f2a58" />
-        </svg>
-        <span class="text-weight-bold" style="font-size: 20px; letter-spacing: 0.5px">FLEET</span>
+        <span class="text-weight-bold" style="font-size: 20px; letter-spacing: 0.5px; color: #16a34a">FLEET</span>
       </div>
     </div>
 
     <div class="row items-center gap-md">
-      <q-input outlined dense disable style="width: 240px" class="gt-xs" placeholder="Search">
+      <q-input
+        outlined
+        dense
+        disable
+        :class="$style.searchPill"
+        class="gt-xs"
+        placeholder="Search"
+      >
         <q-tooltip>Demo only — search isn't wired up</q-tooltip>
-        <template #append><q-icon size="14px" name="fa-solid fa-magnifying-glass" /></template>
+        <template #append><q-icon size="13px" name="fa-solid fa-magnifying-glass" /></template>
       </q-input>
 
-      <div class="row items-center gap-sm gt-sm">
+      <div :class="$style.orgBtn" class="row items-center gap-sm gt-sm">
         <span v-html="corporateFareIconSVG" />
-        <span class="text-weight-medium">Demo Org</span>
+        <span :class="$style.orgLabel">Demo Org</span>
         <q-icon name="fa-solid fa-chevron-down" size="10px" />
       </div>
 
-      <q-btn round flat style="background-color: #f2f2f2">
-        <q-icon name="fa-solid fa-bell" size="14px" style="color: #aaaaaa" />
+      <q-btn round flat :class="$style.bellBtn">
+        <q-icon name="fa-solid fa-bell" size="16px" style="color: #757575" />
         <q-menu>
           <q-list style="min-width: 220px">
             <q-item-label header>Notifications</q-item-label>
@@ -58,17 +60,15 @@ const userAvatarSVG = `<svg width="34px" height="34px" viewBox="0 0 16 16" xmlns
         </q-menu>
       </q-btn>
 
-      <q-btn flat no-caps style="padding: 4px 8px; border-radius: 8px">
-        <q-avatar size="34px">
-          <div style="border: 1.5px solid; border-radius: 100px; overflow: hidden; width: 34px; height: 34px">
-            <span v-html="userAvatarSVG" style="display: flex; align-items: center; transform: translateY(3px)" />
-          </div>
+      <q-btn flat no-caps :class="$style.userBtn">
+        <q-avatar size="28px" :class="$style.avatarWrap">
+          <span v-html="userAvatarSVG" :class="$style.avatarSvg" />
         </q-avatar>
         <div class="q-ml-sm gt-xs text-left">
-          <div>Demo User</div>
-          <div class="text-body2 text-grey-7">Viewer</div>
+          <div :class="$style.userName">Demo User</div>
+          <div :class="$style.userRole">Viewer</div>
         </div>
-        <q-icon name="fa-solid fa-angle-down" size="12px" class="q-ml-xs gt-xs" />
+        <q-icon name="fa-solid fa-angle-down" size="10px" class="q-ml-xs gt-xs" style="color: #9e9e9e" />
         <q-menu>
           <q-list style="min-width: 160px">
             <q-item><q-item-section class="text-grey">No account system (demo)</q-item-section></q-item>
@@ -78,3 +78,50 @@ const userAvatarSVG = `<svg width="34px" height="34px" viewBox="0 0 16 16" xmlns
     </div>
   </div>
 </template>
+
+<style lang="sass" module>
+@import '../style/_variables'
+
+.searchPill :global(.q-field__control)
+  border-radius: 20px
+  height: 32px
+
+.orgBtn
+  border: 1px solid $secondary-grey-2
+  border-radius: 4px
+  height: 32px
+  padding: 0 10px
+  cursor: default
+
+.orgLabel
+  font-size: 13px
+  font-weight: 500
+  color: $primary-black
+
+.bellBtn
+  background-color: transparent
+  &:hover
+    background-color: $primary-grey-1
+
+.userBtn
+  border-radius: 8px
+  padding: 4px 8px
+
+.avatarWrap
+  background-color: $menu-item-green
+  color: $primary-green
+
+.avatarSvg
+  display: flex
+  align-items: center
+
+.userName
+  font-size: 12px
+  font-weight: 600
+  line-height: 1.2
+
+.userRole
+  font-size: 10px
+  color: $secondary-grey-1
+  line-height: 1.2
+</style>

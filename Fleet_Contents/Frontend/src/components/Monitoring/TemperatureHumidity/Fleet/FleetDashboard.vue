@@ -392,6 +392,13 @@ watch(selectedDevice, (hw) => {
   if (hw) onDeviceSelected(hw);
 }, { immediate: true });
 
+// ─── KPI banner (MES-style restyle pilot) — derived from fleetItems already in memory,
+// no extra API calls. ─────────────────────────────────────────────────────────
+const totalDevices = computed(() => fleetItems.value.length);
+const activeCount = computed(() => fleetItems.value.filter((i) => i.status === "OK").length);
+const warnCount = computed(() => fleetItems.value.filter((i) => i.status === "WARN").length);
+const offlineCount = computed(() => fleetItems.value.filter((i) => i.status === "OFFLINE").length);
+
 // Page Visibility API: pause auto-refresh when the tab is hidden to save requests,
 // resume and immediately refresh when the user returns to the tab.
 function onVisibilityChange() {
@@ -439,7 +446,27 @@ onUnmounted(() => {
       </div>
     </HeaderAppV2>
 
-    <div class="app-container q-mx-lg q-mt-lg q-mb-sm">
+    <!-- KPI banner (MES-style pilot) -->
+    <div :class="$style.kpiRow" class="q-mx-lg q-mt-lg">
+      <div :class="[$style.kpiCard, $style.kpiBlue]">
+        <div :class="$style.kpiLabel">Total Devices</div>
+        <div :class="$style.kpiVal">{{ totalDevices }}</div>
+      </div>
+      <div :class="[$style.kpiCard, $style.kpiGreen]">
+        <div :class="$style.kpiLabel">Active</div>
+        <div :class="$style.kpiVal">{{ activeCount }}</div>
+      </div>
+      <div :class="[$style.kpiCard, $style.kpiAmber]">
+        <div :class="$style.kpiLabel">Warning</div>
+        <div :class="$style.kpiVal">{{ warnCount }}</div>
+      </div>
+      <div :class="[$style.kpiCard, $style.kpiRed]">
+        <div :class="$style.kpiLabel">Offline</div>
+        <div :class="$style.kpiVal">{{ offlineCount }}</div>
+      </div>
+    </div>
+
+    <div class="app-container q-mx-lg q-mt-sm q-mb-sm">
       <div class="row bg-white">
         <!-- Fleet Status -->
         <div style="width: 100%">
@@ -597,11 +624,58 @@ onUnmounted(() => {
 
 .sectionHeader
   width: 100%
-  font-size: 14px
+  font-size: 12px
+  font-weight: 700
+  letter-spacing: 0.4px
   text-transform: uppercase
-  color: $primary-black
+  color: #515151
+  background-image: linear-gradient(0deg, $secondary-grey-2 0%, $white 100%)
   border-top: 1px solid $secondary-grey-2
+  border-bottom: 1px solid #c3c6d4
+  padding: 8px 12px !important
 
 .historyMeta
   color: $secondary-grey-1
+
+// ─── KPI banner (MES-style restyle pilot) ──────────────────────────────────────
+.kpiRow
+  display: flex
+  gap: 1px
+  background: $secondary-grey-2
+  border: 1px solid $secondary-grey-2
+  border-radius: 6px
+  overflow: hidden
+
+.kpiCard
+  flex: 1
+  background: $white
+  padding: 9px 16px
+  display: flex
+  flex-direction: column
+  gap: 3px
+  border-left: 3px solid $status-info
+
+.kpiLabel
+  font-size: 11px
+  color: #7f7f7f
+  text-transform: uppercase
+  letter-spacing: 0.5px
+
+.kpiVal
+  font-size: 22px
+  font-weight: 800
+  line-height: 1.1
+  color: #515151
+
+.kpiBlue
+  border-left-color: $status-info
+
+.kpiGreen
+  border-left-color: $status-ok
+
+.kpiAmber
+  border-left-color: $status-warn
+
+.kpiRed
+  border-left-color: $status-alarm
 </style>

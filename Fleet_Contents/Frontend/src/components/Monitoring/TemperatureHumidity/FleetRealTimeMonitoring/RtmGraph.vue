@@ -28,7 +28,7 @@ const props = defineProps<{
     <div v-else-if="historyRows.length" class="column">
       <!-- Temperature & Humidity -->
       <q-card flat>
-        <q-card-section class="headerColor text-weight-bold" style="font-size: 13px">
+        <q-card-section class="headerColor text-weight-bold" style="font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: #515151">
           Temperature &amp; Humidity
         </q-card-section>
         <q-separator />
@@ -41,7 +41,7 @@ const props = defineProps<{
 
       <!-- Light -->
       <q-card flat>
-        <q-card-section class="headerColor text-weight-bold" style="font-size: 13px">
+        <q-card-section class="headerColor text-weight-bold" style="font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: #515151">
           Light
         </q-card-section>
         <q-separator />
@@ -54,7 +54,7 @@ const props = defineProps<{
 
       <!-- Battery -->
       <q-card flat>
-        <q-card-section class="headerColor text-weight-bold" style="font-size: 13px">
+        <q-card-section class="headerColor text-weight-bold" style="font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: #515151">
           Battery
         </q-card-section>
         <q-separator />
@@ -67,7 +67,7 @@ const props = defineProps<{
 
       <!-- Vibration -->
       <q-card flat>
-        <q-card-section class="headerColor text-weight-bold" style="font-size: 13px">
+        <q-card-section class="headerColor text-weight-bold" style="font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: #515151">
           Vibration
         </q-card-section>
         <q-separator />
@@ -83,7 +83,7 @@ const props = defineProps<{
 
       <!-- RSSI -->
       <q-card flat>
-        <q-card-section class="headerColor text-weight-bold" style="font-size: 13px">
+        <q-card-section class="headerColor text-weight-bold" style="font-size: 12px; letter-spacing: 0.4px; text-transform: uppercase; color: #515151">
           RSSI
         </q-card-section>
         <q-separator />
