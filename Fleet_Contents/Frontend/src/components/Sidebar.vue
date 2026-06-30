@@ -2,41 +2,36 @@
 import { ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-// Visually modeled on the real app's NavigationSideV2.vue full menu structure (Dashboard,
-// Document, Certification, Audit, ... Monitoring, Human Resource, Customer Voice Management).
-// Every item EXCEPT the 4 Fleet pages under Monitoring is purely cosmetic — no route, no click
-// handler, no backing page — so their text labels are deliberately hidden (icon-only) to avoid
-// looking like dead/broken links, while still visually filling out the sidebar the way the real
-// product's shell does.
+// Visually modeled on the real app's full sidebar menu structure. Every item EXCEPT the
+// 4 Fleet pages under Monitoring is purely cosmetic — no route, no click handler, no backing
+// page — so only their icons are kept (no labels, no tooltips) to fill out the sidebar without
+// looking like dead/broken links.
+const topLevelIcons: string[] = [
+  "fa-solid fa-chart-pie",
+  "fa-solid fa-folder",
+  "fa-solid fa-certificate",
+  "fa-solid fa-clipboard-check",
+  "fa-solid fa-triangle-exclamation",
+  "fa-solid fa-wand-magic-sparkles",
+  "fa-solid fa-briefcase",
+  "fa-solid fa-file-invoice-dollar",
+  "fa-solid fa-handshake",
+  "fa-solid fa-list"
+];
+
+const bottomLevelIcons: string[] = ["fa-solid fa-users", "fa-solid fa-comments"];
+
 interface MenuItem {
   label: string;
   icon: string;
-  route?: string; // only Fleet items have one
+  route: string;
 }
-
-const topLevel: MenuItem[] = [
-  { label: "Dashboard", icon: "fa-solid fa-chart-pie" },
-  { label: "Document", icon: "fa-solid fa-folder" },
-  { label: "Certification", icon: "fa-solid fa-certificate" },
-  { label: "Audit", icon: "fa-solid fa-clipboard-check" },
-  { label: "Non-Conformance", icon: "fa-solid fa-triangle-exclamation" },
-  { label: "AI Matching", icon: "fa-solid fa-wand-magic-sparkles" },
-  { label: "Operation", icon: "fa-solid fa-briefcase" },
-  { label: "Purchasing", icon: "fa-solid fa-file-invoice-dollar" },
-  { label: "Collaborator", icon: "fa-solid fa-handshake" },
-  { label: "Report", icon: "fa-solid fa-list" }
-];
 
 const fleetItems: MenuItem[] = [
   { label: "Fleet Dashboard", icon: "fa-solid fa-gauge", route: "/monitoring/fleet/dashboard" },
   { label: "Device Settings", icon: "fa-solid fa-sliders", route: "/monitoring/fleet/device-settings" },
   { label: "Cold Truck Real-Time Monitoring", icon: "fa-solid fa-map-location-dot", route: "/monitoring/fleet/real-time" },
   { label: "Alert", icon: "fa-solid fa-bell", route: "/monitoring/fleet/alert" }
-];
-
-const bottomLevel: MenuItem[] = [
-  { label: "Human Resource", icon: "fa-solid fa-users" },
-  { label: "Customer Voice Management", icon: "fa-solid fa-comments" }
 ];
 
 const monitoringExpanded = ref(true);
@@ -47,14 +42,13 @@ const router = useRouter();
 <template>
   <q-list padding>
     <q-item
-      v-for="item in topLevel"
-      :key="item.label"
+      v-for="icon in topLevelIcons"
+      :key="icon"
       class="text-grey-8 decoy-row"
       style="cursor: default"
-      :title="item.label"
     >
       <q-item-section avatar>
-        <q-icon :name="item.icon" />
+        <q-icon :name="icon" />
       </q-item-section>
     </q-item>
 
@@ -73,7 +67,7 @@ const router = useRouter();
         :active="route.path === item.route"
         active-class="text-primary"
         :style="`padding-left: 56px; ${route.path === item.route ? 'background-color: rgba(229,243,234,1)' : ''}`"
-        @click="router.push(item.route!)"
+        @click="router.push(item.route)"
       >
         <q-item-section avatar><q-icon :name="item.icon" size="xs" /></q-item-section>
         <q-item-section>{{ item.label }}</q-item-section>
@@ -81,14 +75,13 @@ const router = useRouter();
     </q-expansion-item>
 
     <q-item
-      v-for="item in bottomLevel"
-      :key="item.label"
+      v-for="icon in bottomLevelIcons"
+      :key="icon"
       class="text-grey-8 decoy-row"
       style="cursor: default"
-      :title="item.label"
     >
       <q-item-section avatar>
-        <q-icon :name="item.icon" />
+        <q-icon :name="icon" />
       </q-item-section>
     </q-item>
   </q-list>
