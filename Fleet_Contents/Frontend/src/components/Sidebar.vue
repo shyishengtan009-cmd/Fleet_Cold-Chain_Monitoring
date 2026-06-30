@@ -49,11 +49,13 @@ const router = useRouter();
     <q-item
       v-for="item in topLevel"
       :key="item.label"
-      class="text-grey-8"
+      class="text-grey-8 decoy-row"
       style="cursor: default"
       :title="item.label"
     >
-      <q-item-section avatar><q-icon :name="item.icon" /></q-item-section>
+      <q-item-section avatar>
+        <q-icon :name="item.icon" class="icon-chip" />
+      </q-item-section>
     </q-item>
 
     <q-expansion-item
@@ -81,11 +83,28 @@ const router = useRouter();
     <q-item
       v-for="item in bottomLevel"
       :key="item.label"
-      class="text-grey-8"
+      class="text-grey-8 decoy-row"
       style="cursor: default"
       :title="item.label"
     >
-      <q-item-section avatar><q-icon :name="item.icon" /></q-item-section>
+      <q-item-section avatar>
+        <q-icon :name="item.icon" class="icon-chip" />
+      </q-item-section>
     </q-item>
   </q-list>
 </template>
+
+<style lang="sass" scoped>
+@import '../style/_variables'
+
+.icon-chip
+  width: 32px
+  height: 32px
+  border: 1px solid $primary-black
+  border-radius: 6px
+  padding: 6px
+  box-sizing: border-box
+
+.decoy-row
+  border-bottom: 1px solid $primary-black
+</style>
