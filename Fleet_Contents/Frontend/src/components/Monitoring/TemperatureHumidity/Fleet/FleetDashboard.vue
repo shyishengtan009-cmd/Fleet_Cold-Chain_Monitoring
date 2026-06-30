@@ -90,6 +90,14 @@ function onDateHide() { window.removeEventListener("scroll", onDateScroll, true)
 const startUtcDate = computed(() => startUtc.value.slice(0, 10));
 const endUtcDate = computed(() => endUtc.value.slice(0, 10));
 
+// Discoverability hint: how much history exists beyond today's default view,
+// so a first-time viewer knows "Full Range" is worth clicking.
+const fullRangeDays = computed(() => {
+  if (!metaMinTs.value || !metaMaxTs.value) return 0;
+  const ms = new Date(metaMaxTs.value).getTime() - new Date(metaMinTs.value).getTime();
+  return Math.max(1, Math.ceil(ms / (24 * 3_600_000)));
+});
+
 function setStartDate(v: string) {
   startUtc.value = v;
 }
@@ -359,17 +367,11 @@ async function onDeviceSelected(hw: string | null) {
   startAlarmNotifier(hw);
   try {
     await loadHistoryMeta(hw);
-    if (metaMinTs.value && metaMaxTs.value) {
-      // Default to the device's full available history, not just the latest day —
-      // otherwise a first-time viewer never sees the backfilled history (migration
-      // 0017) without knowing to click "Full Range" themselves.
-      startUtc.value = isoToDisplayDt(metaMinTs.value);
-      endUtc.value = isoToDisplayDt(metaMaxTs.value);
-    } else {
-      const { start, end } = todayMytRange();
-      startUtc.value = isoToDisplayDt(start);
-      endUtc.value = isoToDisplayDt(end);
-    }
+    // Default to today's data — a focused, readable live view. The full backfilled
+    // history (migration 0017) is one click away via "Full Range" below.
+    const { start, end } = todayMytRange();
+    startUtc.value = isoToDisplayDt(start);
+    endUtc.value = isoToDisplayDt(end);
     await queryHistory();
   } catch (e: unknown) {
     historyError.value = e instanceof Error ? e.message : String(e);
@@ -559,6 +561,9 @@ onUnmounted(() => {
               >
                 Full Range
               </q-btn>
+              <span v-if="fullRangeDays > 1" class="text-caption text-grey-6">
+                Showing today — {{ fullRangeDays }} days of history available
+              </span>
               <q-space />
               <div class="row items-center gap-sm">
                 <q-btn
