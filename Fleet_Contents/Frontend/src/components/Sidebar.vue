@@ -54,7 +54,7 @@ const router = useRouter();
       :title="item.label"
     >
       <q-item-section avatar>
-        <q-icon :name="item.icon" class="icon-chip" />
+        <q-icon :name="item.icon" />
       </q-item-section>
     </q-item>
 
@@ -88,7 +88,7 @@ const router = useRouter();
       :title="item.label"
     >
       <q-item-section avatar>
-        <q-icon :name="item.icon" class="icon-chip" />
+        <q-icon :name="item.icon" />
       </q-item-section>
     </q-item>
   </q-list>
@@ -96,14 +96,6 @@ const router = useRouter();
 
 <style lang="sass" scoped>
 @import '../style/_variables'
-
-.icon-chip
-  width: 32px
-  height: 32px
-  border: 1px solid $primary-black
-  border-radius: 6px
-  padding: 6px
-  box-sizing: border-box
 
 .decoy-row
   border-bottom: 1px solid $primary-black
